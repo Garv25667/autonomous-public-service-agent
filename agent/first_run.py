@@ -174,16 +174,44 @@ async def main():
             ).strip().lower()
 
             if approval == "yes":
+                # Handle the JS confirmation dialog (review.html has onclick="return confirm(...)")
+                page.once("dialog", lambda dialog: dialog.accept())
 
                 await page.get_by_role(
                     "button",
                     name="Approve & submit application"
                 ).click()
 
-                await page.wait_for_load_state("domcontentloaded")
+                # Wait until the receipt page loads
+                await page.wait_for_url("**/receipt/**", timeout=15000)
 
-                print("SUBMISSION ACTION COMPLETED.")
-                print("Final URL:", page.url)
+                # Wait for the receipt reference number
+                await page.locator("#receipt-id").wait_for(state="visible")
+
+                receipt_id = await page.locator("#receipt-id").inner_text()
+                confirmation = await page.get_by_role(
+                    "heading",
+                    name="Application received"
+                ).inner_text()
+
+                print("\nAPPLICATION SUBMITTED SUCCESSFULLY!")
+                print("Reference Number:", receipt_id)
+                print("Confirmation:", confirmation)
+                print("Receipt URL:", page.url)
+
+                # Serialize the receipt to data/receipt.json
+                receipt_path = ROOT / "data" / "receipt.json"
+                receipt_data = {
+                    "receipt_id": receipt_id,
+                    "confirmation": confirmation,
+                    "receipt_url": page.url,
+                    "full_name": personal["full_name"],
+                    "course": personal["course"],
+                    "college": education["college"]
+                }
+                with open(receipt_path, "w", encoding="utf-8") as f:
+                    json.dump(receipt_data, f, indent=2)
+                print(f"Receipt serialized and saved to: {receipt_path}")
 
                 await page.screenshot(
                     path=str(ROOT / "submission_receipt.png"),
