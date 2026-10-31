@@ -123,3 +123,30 @@ Execute the Step 3 test suite:
 python -m unittest tests/unit/test_llm_and_perception.py
 ```
 Validates profile schema parsing, cache roundtrip, quota call cap enforcement, and all 4 matching tiers.
+
+---
+
+## 7. Step 4: State Machine, Checkpointing & Safety Guards Harness
+
+### Components & Responsibilities
+- **`agent/states.py`**:
+  - `RunState`: Core state model tracking status (`running`, `needs_human`, `failed`, `done`), plan step index, action budget, seen page hashes, and audit events.
+  - `PlanStep`: Typed discrete workflow steps (`step_id`, `name`, `intent`, `status`, `retries`).
+  - `AuditEvent`: Append-only audit record logging every browser action with timestamp, selector, redacted summary, status, and screenshot reference.
+- **`agent/guards.py` (`RuntimeGuards`)**:
+  - **Loop Detection**: Flags `LoopDetectedError` if identical page hash is encountered 3 times consecutively.
+  - **Step Retry Guard**: Limits any single step to max 3 attempts before escalating.
+  - **Action Budget**: Hard cap (default 80 browser actions) to prevent runaway execution.
+  - **Idempotency Guard**: Rejects duplicate submission attempts if `submitted=True` or `receipt_id` exists.
+  - **Wall-Clock Timeout**: Fails if total duration exceeds safety threshold (default 300s).
+- **`agent/checkpoint.py` (`Checkpointer`)**:
+  - Automatically persists `RunState` into a local SQLite database (`data/agent_runs.sqlite`).
+  - Guarantees clean crash recovery and human-in-the-loop pause/resume for CAPTCHAs and approvals.
+
+### Unit Tests
+Execute the complete test suite:
+```powershell
+python -m unittest discover tests
+```
+Runs all 13 unit tests across Step 3 and Step 4 with 100% pass rate.
+
