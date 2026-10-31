@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or "National Student Scholarship Portal — Demo" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand-mark">🇮🇳</div>
+  <div><div class="brand-title">National Student Scholarship Portal</div><div class="brand-sub">DEMO ENVIRONMENT · NOT A GOVERNMENT WEBSITE</div></div>
+  <div class="top-right">भारत सरकार · Government of India (fictional demo)</div>
+</header>
+<nav class="nav"><span>Home</span><span>Scholarships</span><span>Help & Support</span><span class="nav-right">English ▾</span></nav>
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for category, message in messages %}<div class="alert {{ category }}">{{ message }}</div>{% endfor %}{% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer>Training portal for browser automation testing · Use synthetic information only</footer>
+<script>
+  document.querySelectorAll("[data-dismiss]").forEach(el => el.addEventListener("click", () => el.remove()));
+</script>
+</body></html>

@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+
+# Environment variables and secrets
+.env
+.env.*
+
+# Runtime data
+*.sqlite
+*.db
+
+# Generated screenshots
+*_run.png
+*_verified.png
+next_step.png
+review_page.png
+submission_receipt.png
+
+# Uploads
+uploads/
+*.png

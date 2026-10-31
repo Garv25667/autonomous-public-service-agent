@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block content %}
+<div class="receipt card"><div class="success-icon">✓</div><div class="eyebrow">APPLICATION SUBMITTED</div><h1>Application received</h1><p>Your demo scholarship application has been recorded successfully.</p>
+<div class="receipt-number"><small>APPLICATION REFERENCE NUMBER</small><strong id="receipt-id">{{receipt_id}}</strong></div>
+<p class="muted">Keep this reference number for tracking. This is a simulated receipt, not a real government acknowledgement.</p>
+<button class="secondary" onclick="window.print()">Print receipt</button> <a class="secondary" href="{{url_for('logout')}}">Finish</a></div>{% endblock %}

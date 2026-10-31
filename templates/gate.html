@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">IDENTITY CHECK</div><h1>Human verification required</h1><p class="muted">The agent must pause and ask the user to complete this step.</p></div></div>
+<div class="card form-card"><div class="notice">This is a simulated CAPTCHA and OTP. Do not attempt to bypass real verification systems.</div>
+<form method="post"><label for="captcha">Enter CAPTCHA text</label><input id="captcha" name="captcha" placeholder="Enter displayed code"><div class="captcha">DEMO-1234</div>
+<label for="otp">One-time password (OTP)</label><input id="otp" name="otp" inputmode="numeric" placeholder="6-digit demo OTP">
+<small>Demo OTP: 123456</small><div class="actions"><button class="primary" type="submit">Verify & resume →</button></div></form></div>{% endblock %}

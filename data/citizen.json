@@ -1,0 +1,19 @@
+
+{
+  "personal": {
+    "full_name": "Aarav Sharma",
+    "dob": "2005-04-05",
+    "category": "General",
+    "course": "B.Tech",
+    "state": "Maharashtra",
+    "district": "Pune",
+    "block": "Haveli"
+  },
+  "education": {
+    "college": "Demo Institute of Technology",
+    "course_year": "Third Year",
+    "marks": "82.5",
+    "annual_income": "450000",
+    "marksheet_path": "data/demo_marksheet.pdf"
+  }
+}

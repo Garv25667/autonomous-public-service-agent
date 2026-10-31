@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block content %}
+<div class="notice"><strong>Training portal:</strong> This is a fictional website built for testing an automation agent. Never enter real personal information.</div>
+<div class="auth-layout">
+  <section class="card intro">
+    <div class="eyebrow">STUDENT SERVICES</div><h1>Apply for a scholarship</h1>
+    <p>Submit your student details and supporting documents through this demonstration portal.</p>
+    <ul class="checklist"><li>Three-step application</li><li>Document upload</li><li>Application confirmation receipt</li></ul>
+  </section>
+  <section class="card login-card">
+    <h2>Applicant Login</h2><p class="muted">Sign in to continue your application.</p>
+    <form method="post">
+      <label for="username">User ID</label><input id="username" name="username" autocomplete="username" placeholder="Enter user ID" required>
+      <label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter password" required>
+      <button class="primary full" type="submit">Sign in securely →</button>
+    </form>
+    <div class="demo-creds"><b>Demo credentials</b><br>User ID: <code>student</code><br>Password: <code>demo123</code></div>
+  </section>
+</div>
+{% endblock %}
