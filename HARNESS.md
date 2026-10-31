@@ -150,3 +150,50 @@ python -m unittest discover tests
 ```
 Runs all 13 unit tests across Step 3 and Step 4 with 100% pass rate.
 
+
+---
+
+## 8. Step 5A: Deterministic Page Verifier (`agent/verifier.py`)
+
+### Architecture & Capabilities
+The Verifier acts as the agent's diagnostic sensor, executing deterministic page-level checks after every browser interaction:
+- **`VerificationResult`**: Typed Pydantic diagnosis returned after inspecting DOM/URL states.
+  - `success`: Boolean indicating if expected transition succeeded.
+  - `issue_type`: Diagnostic classification:
+    - `"none"`: Page transition valid.
+    - `"server_error_500"`: Detected portal 500 error (`?flaky_500=1`).
+    - `"human_gate"`: Detected CAPTCHA/OTP challenge (`/human-check`, `?gate=1`).
+    - `"session_expired"`: Detected unexpected redirect to `/login` (`?expire_session=1`).
+    - `"popup_or_modal"`: Detected dismissible notice blocking UI (`?popup=1`).
+    - `"validation_error"`: Detected form alert banner (`.alert.error`).
+    - `"url_mismatch"`: Current URL does not match step pattern.
+    - `"missing_heading"`: Expected `h1` heading not displayed.
+    - `"field_mismatch"`: Form input read-back value differs from typed input.
+
+### Unit Tests
+Execute the verification suite:
+```powershell
+python -m unittest tests/unit/test_verifier.py
+```
+Validates classification of all portal failure toggles and success states.
+
+---
+
+## 9. Step 5B: Self-Healing Recovery Handler (`agent/recovery.py`)
+
+### Architecture & Strategies
+The Recovery Handler consumes `VerificationResult` instances and applies targeted self-healing strategies:
+- **`dismiss_popup`**: Clicks `[data-dismiss]` elements to clear overlay notices (`?popup=1`).
+- **`relogin_and_resume`**: Re-authenticates on `/login` and navigates back to the checkpointed step (`?expire_session=1`).
+- **`backoff_and_retry`**: Applies exponential backoff and passes `fail_once=0` on 500 server errors (`?flaky_500=1`).
+- **`pause_for_human`**: Switches `RunState.status` to `needs_human` and saves a checkpoint when encountering CAPTCHAs or OTPs (`?gate=1`).
+- **`fix_field_and_retry`**: Flags validation errors for field correction.
+- **`reload_and_retry`**: Reloads the page on URL or heading mismatches.
+- **`escalate_failure`**: Triggers graceful failure when step retries exceed the limit (default 3).
+
+### Unit Tests
+Execute the complete test suite:
+```powershell
+python -m unittest discover tests
+```
+Runs all 31 unit tests across all project milestones (100% pass rate).
