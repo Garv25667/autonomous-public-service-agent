@@ -25,3 +25,6 @@ submission_receipt.png
 # Uploads
 uploads/
 *.png
+
+# LLM Disk Cache
+.cache/

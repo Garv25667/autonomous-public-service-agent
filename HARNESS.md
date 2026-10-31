@@ -1,58 +1,125 @@
-# Harness: citizen.json Profile Creation
+# Harness: Synthetic Profile & Execution Contracts
 
 ## Purpose
-This file documents how to create and maintain the `data/citizen.json` synthetic profile used by `agent/first_run.py`. If the profile is lost or needs regeneration, follow the steps below.
+This file documents the test harness, data schemas, and runtime contracts used by the agent automation pipeline. It serves as the reproducible ground truth for testing against the mock scholarship portal without using real citizen data (zero-PII compliance).
 
-## Profile Structure
+---
 
-The profile is a JSON object with two top-level keys:
+## 1. Profile Structure (`data/citizen.json`)
+
+The profile is a JSON object with two top-level sections:
 
 ### `personal`
-Personal details filled into the first application form step.
+Personal details filled into Step 1 of the application wizard.
 
-| Field | Type | Example |
-|---|---|---|
-| `full_name` | string | `"Aarav Sharma"` |
-| `dob` | string (YYYY-MM-DD) | `"2005-04-05"` |
-| `category` | string | `"General"` |
-| `course` | string | `"B.Tech"` |
-| `state` | string | `"Maharashtra"` |
-| `district` | string | `"Pune"` |
-| `block` | string | `"Haveli"` |
+| Field | Type | Example | Notes |
+|---|---|---|---|
+| `full_name` | string | `"Aarav Sharma"` | Required by portal |
+| `dob` | string (YYYY-MM-DD) | `"2005-04-05"` | Required by portal |
+| `category` | string | `"General"` | Selected in dropdown |
+| `course` | string | `"B.Tech"` | Selected in dropdown |
+| `state` | string | `"Maharashtra"` | Cascading dropdown trigger |
+| `district` | string | `"Pune"` | Populated after state selection |
+| `block` | string | `"Haveli"` | Populated after district selection |
 
 ### `education`
-Education details filled into the second application form step.
+Academic details filled into Step 2 of the application wizard.
 
-| Field | Type | Example |
-|---|---|---|
-| `college` | string | `"Demo Institute of Technology"` |
-| `course_year` | string | `"Third Year"` |
-| `marks` | string (percentage) | `"82.5"` |
-| `annual_income` | string (₹) | `"450000"` |
-| `marksheet_path` | string (relative to repo root) | `"data/demo_marksheet.pdf"` |
+| Field | Type | Example | Notes |
+|---|---|---|---|
+| `college` | string | `"Demo Institute of Technology"` | Free text institution name |
+| `course_year` | string | `"Third Year"` | Selected in dropdown |
+| `marks` | string (percentage) | `"82.5"` | Previous exam percentage |
+| `annual_income` | string (₹) | `"450000"` | Annual family income in INR |
+| `marksheet_path` | string | `"data/demo_marksheet.pdf"` | Relative path to uploaded file (< 2 MB) |
 
-## Creation Steps
+---
 
-1. **Ensure the marksheet file exists** at `data/demo_marksheet.pdf` (or update `marksheet_path` to point to a valid file).
+## 2. Receipt Structure (`data/receipt.json`)
 
-2. **Create `data/citizen.json`** with the structure above, using synthetic (fake) data only. Never use real personal information.
+Upon successful submission through the human approval gate, the receipt details are extracted from the DOM and serialized:
 
-3. **Verify the profile is loadable** by running:
-   ```bash
-   python -c "from agent.first_run import load_profile; print(load_profile())"
+| Field | Type | Example | Source |
+|---|---|---|---|
+| `receipt_id` | string | `"SCH-EF30697C"` | Extracted from `#receipt-id` DOM element |
+| `confirmation` | string | `"Application received"` | Heading text on `/receipt/<id>` page |
+| `receipt_url` | string | `"http://127.0.0.1:5000/receipt/SCH-EF30697C"` | Full URL of the confirmed receipt |
+| `full_name` | string | `"Aarav Sharma"` | Verified applicant name |
+| `course` | string | `"B.Tech"` | Verified course |
+| `college` | string | `"Demo Institute of Technology"` | Verified college |
+
+---
+
+## 3. Automation Contracts & Handlers
+
+### Human Approval & JS Confirm Dialog
+On the final `/review` step, submitting triggers a native JavaScript `confirm()` dialog (`onclick="return confirm('Submit this demo application?')"`).
+- Playwright by default automatically dismisses (cancels) unhandled dialogs, which cancels form submission.
+- The automation registers a dialog listener before clicking the submit button:
+  ```python
+  page.once("dialog", lambda dialog: dialog.accept())
+  ```
+- The approval gate explicitly prompts the user via CLI before dispatching the final click.
+
+### Artifacts Captured
+- `education_verified.png`: Snapshot of Step 2 after filling and uploading the marksheet.
+- `review_page.png`: Snapshot of the review summary table prior to human approval.
+- `submission_receipt.png`: Snapshot of the generated receipt with reference ID.
+- `data/receipt.json`: Serialized output of the submission receipt.
+
+---
+
+## 4. Verification & Health Checks
+
+### PowerShell Profile Load Test
+To verify `data/citizen.json` can be loaded cleanly by Python (use single quotes in PowerShell to prevent parser errors):
+```powershell
+python -c 'from agent.first_run import load_profile; print(load_profile())'
+```
+
+### End-to-End Test Run
+1. Start the portal:
+   ```powershell
+   python app.py
    ```
+2. In a separate terminal, execute the baseline automation:
+   ```powershell
+   python agent/first_run.py
+   ```
+3. Enter `yes` when prompted for final submission approval.
+4. Verify that `data/receipt.json` and `submission_receipt.png` are created.
 
-## Usage
+---
 
-`agent/first_run.py` reads this profile and automates the browser to fill the scholarship application form. The profile values are used in order:
+## 5. Regeneration Steps
 
-1. Personal information (step 1) → full_name, dob, category, course, state, district, block
-2. Education information (step 2) → college, course_year, marks, annual_income
-3. Marksheet upload → uses `marksheet_path` to locate the file
+If recreating the environment from scratch:
+1. Ensure a valid sample PDF exists at `data/demo_marksheet.pdf` (size under 2 MB).
+2. Create `data/citizen.json` using only synthetic test data (never real citizen data).
+3. Validate loading via the PowerShell test above.
+4. Run `python agent/first_run.py` to confirm the entire flow succeeds.
 
-## Regeneration Note
+---
 
-If you need to rebuild the profile from scratch, follow the order:
-1. Place a valid marksheet PDF at `data/demo_marksheet.pdf` (or update the path)
-2. Fill in `data/citizen.json` with appropriate synthetic data
-3. Run `python agent/first_run.py` to verify the automation works end-to-end
+## 6. Step 3: LLM Client & Semantic Perception Harness
+
+### Architecture & Components
+- **`agent/llm/client.py`**: Unified `LLMClient` backed by Google GenAI (`google-genai`). Provides structured JSON generation via `LLMClient.generate_json(schema, prompt)` with automatic exponential backoff on 429 rate limits.
+- **`agent/llm/cache.py`**: Disk cache keyed on `sha256(model + prompt)` in `.cache/llm/`. Eliminates duplicate API calls, saving free-tier quota and keeping CI runs deterministic and zero-cost.
+- **`agent/llm/schemas.py`**: Pydantic v2 schemas (`DropdownMatch`, `CitizenProfile`, `PersonalInfo`, `EducationInfo`).
+- **`agent/perception.py`**: 4-tier fallback semantic matcher:
+  1. **Tier 1 (Exact)**: Case-insensitive string match (Confidence: `1.0`)
+  2. **Tier 2 (Synonym)**: Domain dictionary mapping (`"B.Tech"` $\rightarrow$ `"Bachelor of Technology"`, `"GEN"` $\rightarrow$ `"General"`) (Confidence: `0.95`)
+  3. **Tier 3 (Fuzzy)**: `rapidfuzz.fuzz.token_sort_ratio` $\ge 80$ (Confidence: `0.80 - 0.94`)
+  4. **Tier 4 (LLM Fallback)**: Gemini Flash-Lite structured JSON output adhering to `DropdownMatch`. Rejects choices with confidence $< 0.75$.
+
+### Quota Guardrail
+- Hard cap on maximum LLM calls per run (`max_calls_per_run`, default 10).
+- Automatically raises `QuotaExceededError` instead of exhausting the daily Gemini quota.
+
+### Unit Tests
+Execute the Step 3 test suite:
+```powershell
+python -m unittest tests/unit/test_llm_and_perception.py
+```
+Validates profile schema parsing, cache roundtrip, quota call cap enforcement, and all 4 matching tiers.
