@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Public Service Agent — Live Dashboard</title>
+  <style>
+    :root {
+      --primary: #0f4c81;
+      --primary-hover: #0b3861;
+      --success: #107c41;
+      --warning: #d83b01;
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text: #202124;
+      --muted: #5f6368;
+      --border: #e0e0e0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 40px; }
+    
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-logo { font-size: 28px; }
+    .brand-title { font-size: 20px; font-weight: 700; color: var(--primary); }
+    .brand-subtitle { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .status-badge {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      background: #e8f0fe;
+      color: var(--primary);
+    }
+    .status-badge.running { background: #e3f2fd; color: #1976d2; }
+    .status-badge.needs_human { background: #fff3e0; color: #e65100; animation: pulse 1.5s infinite; }
+    .status-badge.done { background: #e8f5e9; color: var(--success); }
+    .status-badge.failed { background: #ffebee; color: #c62828; }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 24px auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 480px 1fr;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f0f0f0;
+      padding-bottom: 10px;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #e8eaed; color: var(--text); }
+    .btn-secondary:hover { background: #dadce0; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger { background: #d93025; color: #fff; }
+    .btn-group { display: flex; gap: 10px; margin-top: 14px; }
+
+    /* Intake Profile */
+    .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; }
+    .profile-item { background: #f8f9fa; padding: 8px 12px; border-radius: 6px; }
+    .profile-label { color: var(--muted); font-size: 11px; text-transform: uppercase; margin-bottom: 2px; }
+    .profile-val { font-weight: 600; }
+
+    /* Live screencast */
+    .screencast-container {
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      aspect-ratio: 16 / 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .screencast-img { width: 100%; height: 100%; object-fit: contain; }
+    .screencast-placeholder { color: #888; font-size: 14px; }
+
+    /* Audit logs */
+    .log-stream { max-height: 280px; overflow-y: auto; font-size: 13px; }
+    .log-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .log-time { color: var(--muted); font-size: 11px; min-width: 65px; }
+    .log-action { font-weight: 600; color: var(--primary); }
+    .log-desc { color: #444; flex: 1; word-break: break-all; }
+
+    /* Interactive modal */
+    .modal-overlay {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 14px;
+    }
+    .modal-title { font-weight: 700; color: #b78103; margin-bottom: 8px; }
+
+    /* Receipt */
+    .receipt-box {
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      padding: 18px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .receipt-id { font-size: 24px; font-weight: 800; color: var(--success); letter-spacing: 1px; margin: 8px 0; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">🇮🇳</div>
+      <div>
+        <div class="brand-title">Public Service Automation Agent</div>
+        <div class="brand-subtitle">Autonomous Citizen Assistance & Form-Filling</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <span id="agent-status" class="status-badge">READY</span>
+      <button class="btn btn-secondary" onclick="checkEligibility()">Pre-Check Eligibility</button>
+      <button class="btn btn-primary" onclick="startRun(false)">Start Live Run</button>
+      <button class="btn btn-secondary" onclick="startRun(true)">Dry Run</button>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- Left Column: Intake, Eligibility, Human Controls, Receipt -->
+    <div>
+      
+      <!-- Citizen Intake Profile -->
+      <div class="card">
+        <div class="card-title">
+          <span>Citizen Intake Profile</span>
+          <span style="font-size: 12px; color: var(--success); font-weight: 600;">✓ Verified</span>
+        </div>
+        <div class="profile-grid" id="profile-container">
+          <div class="profile-item"><div class="profile-label">Full Name</div><div class="profile-val" id="p-name">Loading...</div></div>
+          <div class="profile-item"><div class="profile-label">Date of Birth</div><div class="profile-val" id="p-dob">...</div></div>
+          <div class="profile-item"><div class="profile-label">Category</div><div class="profile-val" id="p-category">...</div></div>
+          <div class="profile-item"><div class="profile-label">Course</div><div class="profile-val" id="p-course">...</div></div>
+          <div class="profile-item"><div class="profile-label">Annual Income</div><div class="profile-val" id="p-income">...</div></div>
+          <div class="profile-item"><div class="profile-label">College</div><div class="profile-val" id="p-college">...</div></div>
+        </div>
+      </div>
+
+      <!-- Eligibility Pre-Check Result -->
+      <div class="card" id="eligibility-card">
+        <div class="card-title">Eligibility Pre-Check (Feature F3)</div>
+        <div id="eligibility-status" style="font-size: 14px; color: var(--muted);">Click 'Pre-Check Eligibility' to run YAML rule evaluation.</div>
+      </div>
+
+      <!-- Human-in-the-Loop Gate Box (Dynamic) -->
+      <div class="card" id="human-gate-card" style="display: none;">
+        <div class="card-title" style="color: var(--warning);">⚠️ Human Verification Required</div>
+        <div id="human-gate-content"></div>
+      </div>
+
+      <!-- Final Receipt Card -->
+      <div class="card" id="receipt-card" style="display: none;">
+        <div class="card-title">Application Confirmed (Feature F6)</div>
+        <div class="receipt-box">
+          <div style="font-size: 12px; color: var(--muted); text-transform: uppercase;">Application Reference Number</div>
+          <div class="receipt-id" id="receipt-num">SCH-XXXXXXXX</div>
+          <p style="font-size: 13px; color: #2e7d32;">Your demo scholarship application has been officially recorded.</p>
+          <div class="btn-group" style="justify-content: center; margin-top: 14px;">
+            <button class="btn btn-secondary" onclick="window.print()">Print Receipt</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Live Screencast View & Real-time Step Log -->
+    <div>
+      
+      <!-- Live Screencast View -->
+      <div class="card">
+        <div class="card-title">
+          <span>Live Browser Screencast (Chromium)</span>
+          <span style="font-size: 12px; color: #1976d2;" id="live-indicator">● Standby</span>
+        </div>
+        <div class="screencast-container">
+          <img id="screencast-stream" class="screencast-img" src="" style="display: none;" alt="Live browser view">
+          <div id="screencast-placeholder" class="screencast-placeholder">Live screencast will stream here once execution begins.</div>
+        </div>
+      </div>
+
+      <!-- Real-time Step Log & Audit Trail -->
+      <div class="card">
+        <div class="card-title">
+          <span>Execution Step Log & Audit Trail</span>
+          <span style="font-size: 12px; color: var(--muted);" id="action-count">0 Actions</span>
+        </div>
+        <div class="log-stream" id="log-stream">
+          <div class="log-item">
+            <span class="log-time">--:--:--</span>
+            <span class="log-action">INIT</span>
+            <span class="log-desc">Orchestrator ready. Waiting to launch workflow.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let ws = null;
+
+    function connectWebSocket() {
+      const loc = window.location;
+      const wsUri = (loc.protocol === "https:" ? "wss:" : "ws:") + "//" + loc.host + "/ws/live/active";
+      ws = new WebSocket(wsUri);
+
+      ws.onmessage = function(event) {
+        const msg = JSON.parse(event.data);
+        handleAgentEvent(msg.event, msg.data);
+      };
+
+      ws.onclose = function() {
+        setTimeout(connectWebSocket, 2000);
+      };
+    }
+
+    function handleAgentEvent(type, data) {
+      if (data.screenshot) {
+        const img = document.getElementById("screencast-stream");
+        const placeholder = document.getElementById("screencast-placeholder");
+        img.src = "data:image/jpeg;base64," + data.screenshot;
+        img.style.display = "block";
+        placeholder.style.display = "none";
+        document.getElementById("live-indicator").innerText = "● LIVE STREAMING";
+        document.getElementById("live-indicator").style.color = "#107c41";
+      }
+
+      if (type === "run_started") {
+        updateStatus("RUNNING", "running");
+        addLog("RUN_START", `Agent launched with Run ID: ${data.run_id}`);
+      } else if (type === "step_completed") {
+        addLog(data.step.toUpperCase(), `Completed step ${data.step}. Checkpoint saved to SQLite.`);
+      } else if (type === "approval_required") {
+        updateStatus("NEEDS HUMAN", "needs_human");
+        showApprovalGate(data);
+      } else if (type === "run_completed") {
+        updateStatus("COMPLETED", "done");
+        showReceipt(data.receipt);
+        addLog("RECEIPT", `Verified reference ID: ${data.receipt.receipt_id}`);
+      }
+    }
+
+    function updateStatus(text, className) {
+      const el = document.getElementById("agent-status");
+      el.innerText = text;
+      el.className = "status-badge " + className;
+    }
+
+    function addLog(action, desc) {
+      const stream = document.getElementById("log-stream");
+      const now = new Date().toLocaleTimeString();
+      const div = document.createElement("div");
+      div.className = "log-item";
+      div.innerHTML = `<span class="log-time">${now}</span><span class="log-action">${action}</span><span class="log-desc">${desc}</span>`;
+      stream.insertBefore(div, stream.firstChild);
+    }
+
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/profile");
+        const data = await res.json();
+        document.getElementById("p-name").innerText = data.personal.full_name;
+        document.getElementById("p-dob").innerText = data.personal.dob;
+        document.getElementById("p-category").innerText = data.personal.category;
+        document.getElementById("p-course").innerText = data.personal.course;
+        document.getElementById("p-income").innerText = "₹" + Number(data.education.annual_income).toLocaleString();
+        document.getElementById("p-college").innerText = data.education.college;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function checkEligibility() {
+      const statusEl = document.getElementById("eligibility-status");
+      statusEl.innerHTML = "Evaluating YAML eligibility rules...";
+      try {
+        const res = await fetch("/api/eligibility");
+        const data = await res.json();
+        if (data.eligible) {
+          statusEl.innerHTML = `<div style="color: var(--success); font-weight: 600;">✓ ELIGIBLE FOR SCHOLARSHIP</div><p style="font-size: 13px; margin-top: 6px;">${data.friendly_explanation}</p>`;
+        } else {
+          statusEl.innerHTML = `<div style="color: var(--warning); font-weight: 600;">✗ NOT ELIGIBLE</div><p style="font-size: 13px; margin-top: 6px;">${data.reasons.join("<br>")}</p>`;
+        }
+      } catch (e) {
+        statusEl.innerText = "Failed to run eligibility check: " + e;
+      }
+    }
+
+    async function startRun(dryRun) {
+      updateStatus("INITIALIZING", "running");
+      addLog("AGENT", dryRun ? "Initiating dry-run..." : "Launching live autonomous run...");
+      try {
+        await fetch(`/api/run?dry_run=${dryRun}&headless=false`, { method: "POST" });
+      } catch (e) {
+        addLog("ERROR", "Failed to launch run: " + e);
+      }
+    }
+
+    function showApprovalGate(data) {
+      const card = document.getElementById("human-gate-card");
+      const content = document.getElementById("human-gate-content");
+      card.style.display = "block";
+      content.innerHTML = `
+        <div class="modal-overlay">
+          <div class="modal-title">Final Review Approval Required (Feature F6)</div>
+          <p style="font-size: 13px; margin-bottom: 10px;">Please review the application values compiled from citizen.json:</p>
+          <pre style="background: #fff; padding: 10px; border-radius: 6px; font-size: 12px; overflow-x: auto;">${data.summary_table}</pre>
+          <div class="btn-group">
+            <button class="btn btn-success" onclick="resolveApproval('${data.run_id}', true)">Approve & Submit</button>
+            <button class="btn btn-danger" onclick="resolveApproval('${data.run_id}', false)">Reject & Cancel</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function showReceipt(receipt) {
+      const card = document.getElementById("receipt-card");
+      document.getElementById("receipt-num").innerText = receipt.receipt_id;
+      card.style.display = "block";
+    }
+
+    // Initialize
+    loadProfile();
+    connectWebSocket();
+  </script>
+</body>
+</html>

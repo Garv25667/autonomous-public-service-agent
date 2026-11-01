@@ -29,3 +29,7 @@ uploads/
 
 # LLM Disk Cache
 .cache/
+
+# Reference docs
+Public Service Agent*.pdf
+

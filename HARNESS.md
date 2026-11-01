@@ -262,3 +262,52 @@ Execute the Step 8 test suite:
 python -m unittest tests/unit/test_step8_eligibility_docs_handoff.py
 ```
 Validates YAML rule evaluation, document constraints, and CAPTCHA/OTP detection and pause handling.
+
+---
+
+## 13. Step 9: Web Dashboard, FastAPI Backend & Full Orchestration
+
+### Architecture & Components
+- **Unified Orchestrator (`agent/orchestrator.py`)**:
+  - Full async state machine coordinating all components:
+    - Pre-flight eligibility evaluation (`EligibilityEvaluator`)
+    - Document readiness validation (`DocumentProcessor`)
+    - Secret tokenization & masking (`SecretVault`)
+    - Browser automation via Playwright with semantic perception (`SemanticMapper`)
+    - Post-action deterministic verification (`PageVerifier`) and self-healing recovery (`RecoveryHandler`)
+    - Pre-submission summary display and explicit approval gate (`ApprovalGate`)
+    - DOM regex receipt extraction (`ReceiptExtractor`)
+    - State updates, loop detection (`RuntimeGuards`), and checkpointing (`Checkpointer`)
+  - Broadcasts live events and JPEG screencast frames through an event callback.
+- **FastAPI Backend (`api/main.py`)**:
+  - `GET /api/profile` & `POST /api/profile`: Read and update citizen profile.
+  - `GET /api/eligibility`: Evaluate YAML rules against current profile.
+  - `GET /api/runs` & `GET /api/runs/{run_id}`: Retrieve agent run history and checkpoint state.
+  - `POST /api/run`: Trigger an autonomous run (with `dry_run` and `headless` query flags) as a background task.
+  - `WebSocket /ws/live/{run_id}`: Real-time bi-directional streaming for live screencast frames, step transitions, audit logs, and human gate interaction.
+  - `GET /`: Serves the responsive citizen web dashboard single-page application.
+- **Web Dashboard (`web/index.html`)**:
+  - Profile intake editor & YAML eligibility badge.
+  - Live Chromium screencast streaming window.
+  - Real-time step tracker and chronological audit event stream.
+  - Modal human approval gate displaying the pre-submission summary table.
+  - Submission receipt card displaying the extracted reference ID.
+
+### Running the Live Dashboard
+1. Start the mock portal (in one terminal):
+   ```powershell
+   python app.py
+   ```
+2. Start the FastAPI dashboard server (in a second terminal):
+   ```powershell
+   python -m uvicorn api.main:app --port 8000
+   ```
+3. Open `http://127.0.0.1:8000` in your web browser.
+
+### Unit Tests
+Execute the Step 9 test suite:
+```powershell
+python -m unittest tests/unit/test_step9_api_and_orchestrator.py
+```
+Validates canonical plan creation, orchestrator component bindings, profile & eligibility endpoints, run checkpoint queries, and dashboard asset rendering.
+
