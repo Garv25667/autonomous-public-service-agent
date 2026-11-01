@@ -18,6 +18,7 @@ from .tools.docs import DocumentProcessor
 from .eligibility import EligibilityEvaluator, EligibilityResult
 from .approval import ApprovalGate, ReviewSummaryTable
 from .receipt import ReceiptExtractor, ReceiptData
+from .workflow_cache import WorkflowCache, CachedStep
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -60,6 +61,7 @@ class AgentOrchestrator:
         self.handoff = HumanHandoffManager()
         self.approval_gate = ApprovalGate(dry_run=dry_run)
         self.receipt_extractor = ReceiptExtractor()
+        self.workflow_cache = WorkflowCache()
 
     async def _emit_event(self, event_type: str, payload: Dict[str, Any]) -> None:
         """Sends live WebSocket update to the front end if a callback is registered."""
@@ -209,6 +211,11 @@ class AgentOrchestrator:
                     state.record_audit(action="personal_info", status="success", value_summary=personal["full_name"])
                     state.step_index = 2
                     self.checkpointer.save(state)
+
+                    # Record successful Step 1 workflow into replay cache
+                    fp1 = self.workflow_cache.compute_page_fingerprint("/application/1", ["Full name *", "Date of birth *", "Category", "Current course", "State", "District", "Block / Taluka"])
+                    self.workflow_cache.record_step(fp1, "/application/1", CachedStep(step_id="full_name", intent="fill_name", action_type="fill", locator_strategy="label", locator_target="Full name *", value_ref="personal.full_name"))
+                    self.workflow_cache.record_step(fp1, "/application/1", CachedStep(step_id="category", intent="select_cat", action_type="select", locator_strategy="label", locator_target="Category", value_ref="personal.category"))
 
                     frame = await self._capture_live_frame(page)
                     await self._emit_event("step_completed", {"step": "step1", "screenshot": frame, "state": state.model_dump()})

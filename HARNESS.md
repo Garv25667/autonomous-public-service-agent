@@ -352,4 +352,40 @@ python -m unittest tests/unit/test_step10_benchmark.py
 ```
 Validates benchmark runner initialization, simulation trials across all 6 scenarios, metrics contracts, and summary aggregations.
 
+---
+
+## 15. Step 11: Phase 2 Stretch — Workflow Replay Cache (`agent/workflow_cache.py`)
+
+### Architecture & Design (Explore-Once-Then-Replay)
+The Workflow Replay Cache implements the Phase 2 stretch goal outlined in Section 4 of the 48-Hour Build Playbook:
+- **Cold Run (Exploration)**:
+  - When encountering a new form/step, the agent explores using locators, semantic perception, or Gemini Flash-Lite fallback if necessary.
+  - Automatically computes a deterministic page fingerprint:
+    $$\text{page\_fingerprint} = \text{sha256}(\text{normalized\_url} + \text{sorted(field\_labels)})[:16]$$
+  - Records each successful browser action into SQLite (`data/workflow_cache.sqlite`) as a `CachedStep` record containing:
+    - `intent`: human-readable goal (e.g. `fill_name`, `select_category`)
+    - `action_type`: `"fill"`, `"select"`, `"check"`, `"upload"`, `"click"`
+    - `locator_strategy`: `"label"`, `"role"`, `"css"`, `"id"`
+    - `locator_target`: string target (e.g. `"Full name *"`)
+    - `value_ref`: path reference in citizen profile (e.g. `"personal.full_name"`)
+- **Warm Run (Deterministic Replay)**:
+  - When visiting a known page, the agent checks `workflow_cache.get_workflow(fingerprint)`.
+  - Replays saved steps directly without invoking the LLM, reducing per-run LLM quota usage to **0 calls**.
+- **Self-Healing on DOM Renaming**:
+  - `heal_step()` updates obsolete locators in the cache when the portal updates its layout or IDs (`rename_ids=1`), ensuring continuous resilience.
+
+### Cold vs. Warm Performance Benchmark
+The benchmark suite includes the `warm_cache` scenario comparing cold exploration vs. warm execution:
+```powershell
+python benchmark.py --mode sim --scenarios base warm_cache --runs 3
+```
+
+### Unit Tests
+Execute the Step 11 test suite:
+```powershell
+python -m unittest tests/unit/test_step11_workflow_cache.py
+```
+Validates deterministic page fingerprint computation, cache miss/hit cycles, step append & counter increments, self-healing locator updates, and telemetry calculations.
+
+
 

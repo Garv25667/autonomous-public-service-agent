@@ -12,10 +12,11 @@ class TestStep10Benchmark(unittest.TestCase):
 
     def test_runner_initialization_sim_mode(self):
         self.assertEqual(self.runner.mode, "sim")
-        self.assertEqual(len(self.runner.SCENARIOS), 6)
+        self.assertGreaterEqual(len(self.runner.SCENARIOS), 6)
         self.assertIn("base", self.runner.SCENARIOS)
         self.assertIn("gate", self.runner.SCENARIOS)
         self.assertIn("flaky_500", self.runner.SCENARIOS)
+        self.assertIn("warm_cache", self.runner.SCENARIOS)
 
     def test_run_simulation_base_scenario(self):
         metric = self.runner.run_simulation_trial("base", trial=1)
