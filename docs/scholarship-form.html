@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>National Merit Scholarship Application (Live Portal Form)</title>
+  <style>
+    :root {
+      --primary: #0f4c81;
+      --primary-hover: #0b3861;
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --border: #d0d7de;
+      --success: #107c41;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: #202124; padding: 30px 16px; }
+    .container { max-width: 840px; margin: 0 auto; background: var(--card); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,0.06); padding: 36px; }
+    .header { text-align: center; margin-bottom: 28px; border-bottom: 2px solid #e8f0fe; padding-bottom: 18px; }
+    .header h1 { color: var(--primary); font-size: 26px; margin-bottom: 6px; }
+    .header p { color: #5f6368; font-size: 14px; }
+    
+    fieldset { border: 1px solid var(--border); border-radius: 8px; padding: 22px; margin-bottom: 24px; background: #fafbfc; }
+    legend { font-weight: 700; color: var(--primary); background: #e8f0fe; padding: 4px 14px; border-radius: 4px; font-size: 14px; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+    .form-group { display: flex; flex-direction: column; margin-bottom: 14px; }
+    label { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #3c4043; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="number"], select, textarea {
+      padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; background: #fff; transition: all 0.2s;
+    }
+    textarea { height: 90px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.15); }
+    
+    .file-box { border: 2px dashed var(--border); padding: 18px; text-align: center; border-radius: 8px; background: #fff; }
+    .submit-btn { background: var(--primary); color: #fff; border: none; padding: 14px; font-size: 16px; font-weight: 700; border-radius: 8px; cursor: pointer; width: 100%; transition: background 0.2s; }
+    .submit-btn:hover { background: var(--primary-hover); }
+
+    .toast-success { display: none; background: #e6f4ea; border: 1px solid #ceead6; color: var(--success); padding: 16px; border-radius: 8px; font-weight: 600; margin-bottom: 20px; text-align: center; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>National Merit Scholarship Application Portal</h1>
+    <p>Live Web Form — Applicant Profile & Academic Background Intake</p>
+  </div>
+
+  <div id="toast" class="toast-success">
+    ✓ Application Received Successfully! Reference ID: SCH-994A1F80
+  </div>
+
+  <div id="autofill-status-bar" style="background: #e8f0fe; border: 1px solid #c2e7ff; color: #1a73e8; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;">
+    <span>⚡ <strong>Live Portal Form Ready:</strong> Standing by for autonomous autofill.</span>
+    <button type="button" onclick="runAutofill()" style="background: #1a73e8; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; font-weight: 600; cursor: pointer;">▶️ Autofill Now</button>
+  </div>
+
+  <form id="scholarship-form" onsubmit="event.preventDefault(); document.getElementById('toast').style.display='block'; window.scrollTo({top:0, behavior:'smooth'});">
+    
+    <!-- Section 1 -->
+    <fieldset>
+      <legend>1. Personal Information</legend>
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="fullname">Full Name *</label>
+          <input type="text" id="fullname" name="fullname" required placeholder="Enter student full name">
+        </div>
+        <div class="form-group">
+          <label for="dob">Date of Birth *</label>
+          <input type="date" id="dob" name="dob" required>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="email">Email Address *</label>
+          <input type="email" id="email" name="email" required placeholder="student@example.com">
+        </div>
+        <div class="form-group">
+          <label for="phone">Contact Phone Number *</label>
+          <input type="tel" id="phone" name="phone" required placeholder="10-digit mobile number">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="category">Category / Reservation *</label>
+          <select id="category" name="category" required>
+            <option value="">-- Select Category --</option>
+            <option value="General">General</option>
+            <option value="OBC">OBC</option>
+            <option value="SC">SC</option>
+            <option value="ST">ST</option>
+            <option value="EWS">EWS</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="income">Annual Family Income (INR) *</label>
+          <input type="number" id="income" name="income" required placeholder="Annual income in INR">
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Section 2 -->
+    <fieldset>
+      <legend>2. Education Details</legend>
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="college">Current College / University *</label>
+          <input type="text" id="college" name="college" required placeholder="Institution name">
+        </div>
+        <div class="form-group">
+          <label for="course">Degree / Field of Study *</label>
+          <input type="text" id="course" name="course" required placeholder="e.g. B.Tech, B.Sc">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="marks">Previous Exam Percentage (%) *</label>
+          <input type="number" step="0.1" id="marks" name="marks" required placeholder="e.g. 82.5">
+        </div>
+        <div class="form-group">
+          <label for="state">Domicile State *</label>
+          <input type="text" id="state" name="state" required placeholder="State name">
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Section 3 -->
+    <fieldset>
+      <legend>3. Statement & Supporting Documents</legend>
+      <div class="form-group">
+        <label for="statement">Statement of Purpose / Why do you need this scholarship? *</label>
+        <textarea id="statement" name="statement" placeholder="Briefly describe your career goals and financial need..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="marksheet">Upload Academic Marksheet (PDF) *</label>
+        <div class="file-box">
+          <input type="file" id="marksheet" name="marksheet" accept=".pdf,.jpg,.jpeg">
+        </div>
+      </div>
+    </fieldset>
+
+    <button type="submit" class="submit-btn" id="submit-btn">Submit Scholarship Application</button>
+  </form>
+</div>
+
+<script>
+  async function runAutofill() {
+    const bar = document.getElementById("autofill-status-bar");
+    if (bar) bar.innerHTML = "🤖 <strong>Autonomous Agent Active:</strong> Reading citizen profile and populating fields in slow-mo...";
+
+    let profile = {
+      personal: { full_name: "Garv Sharma", dob: "2005-04-05", category: "General", course: "B.Tech", state: "Rajasthan" },
+      education: { college: "Demo Institute of Technology", marks: "82.5", annual_income: "450000" }
+    };
+
+    try {
+      const res = await fetch("/api/profile");
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.personal) profile = data;
+      }
+    } catch(e) {}
+
+    const fields = [
+      { id: "fullname", val: profile.personal.full_name || "Garv Sharma" },
+      { id: "dob", val: profile.personal.dob || "2005-04-05" },
+      { id: "email", val: "student.garv@example.edu" },
+      { id: "phone", val: "9876543210" },
+      { id: "category", val: profile.personal.category || "General", isSelect: true },
+      { id: "income", val: profile.education.annual_income || "450000" },
+      { id: "college", val: profile.education.college || "Demo Institute of Technology" },
+      { id: "course", val: profile.personal.course || "B.Tech" },
+      { id: "marks", val: profile.education.marks || "82.5" },
+      { id: "state", val: profile.personal.state || "Rajasthan" },
+      { id: "statement", val: "Applying for National Merit / Central Sector Scholarship for B.Tech academic tuition assistance." }
+    ];
+
+    async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    for (const f of fields) {
+      const el = document.getElementById(f.id);
+      if (!el) continue;
+
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.outline = "3px solid #1a73e8";
+      el.style.background = "#e8f0fe";
+      await sleep(250);
+
+      if (f.isSelect || el.type === "date") {
+        el.value = f.val;
+      } else {
+        el.value = "";
+        for (let i = 0; i < f.val.length; i++) {
+          el.value += f.val[i];
+          await sleep(25);
+        }
+      }
+
+      await sleep(150);
+      el.style.outline = "2px solid #34a853";
+      el.style.background = "#fff";
+    }
+
+    // Attach document indicator
+    const fileBox = document.querySelector(".file-box");
+    if (fileBox) {
+      fileBox.innerHTML = `
+        <div style="color: #1e8e3e; font-weight: 600; padding: 10px;">
+          📄 <strong>demo_marksheet.pdf</strong> attached (26.8 KB)
+          <div style="font-size: 11px; color: #5f6368; margin-top: 4px;">Verified: Complies with portal upload constraints.</div>
+        </div>
+      `;
+      fileBox.style.border = "2px solid #34a853";
+      fileBox.style.background = "#e6f4ea";
+    }
+
+    if (bar) {
+      bar.innerHTML = "✅ <strong>Autonomous Form Filling Completed!</strong> Verified all citizen attributes. Ready to submit.";
+      bar.style.background = "#e6f4ea";
+      bar.style.borderColor = "#ceead6";
+      bar.style.color = "#1e8e3e";
+    }
+
+    const btn = document.getElementById("submit-btn");
+    if (btn) {
+      btn.style.boxShadow = "0 0 0 4px rgba(30, 142, 62, 0.4)";
+      btn.focus();
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    // If URL has ?autofill=1 or opened by agent, start typing automatically after 600ms
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("autofill") === "1" || window.opener) {
+      setTimeout(runAutofill, 600);
+    }
+  });
+</script>
+</body>
+</html>

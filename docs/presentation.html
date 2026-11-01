@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JanSeva AI — Pitch Deck Presentation</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-hover: #0284c7;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --border: #334155;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* Top Controls Bar */
+    header {
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; color: var(--primary); }
+    .brand span.badge { background: #0369a1; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 12px; }
+
+    .nav-controls { display: flex; align-items: center; gap: 12px; }
+    .btn {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: #334155; border-color: var(--primary); }
+    .btn-primary { background: #0284c7; border-color: #0284c7; color: #fff; }
+    .btn-primary:hover { background: #0369a1; }
+
+    /* Slide Viewport */
+    .deck-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .slide {
+      position: absolute;
+      width: 100%;
+      max-width: 1080px;
+      height: 80vh;
+      max-height: 640px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      padding: 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      transform: scale(0.96) translateX(40px);
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: scale(1) translateX(0);
+      pointer-events: auto;
+    }
+
+    /* Slide Typography */
+    .slide-tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .slide-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .slide-subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      flex: 1;
+      align-content: start;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .card-icon { font-size: 26px; margin-bottom: 10px; }
+    .card-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+    /* Footer & Pagination */
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .dots { display: flex; gap: 8px; }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dot.active { background: var(--primary); width: 24px; border-radius: 10px; }
+
+    @media print {
+      body { overflow: visible; background: #fff; color: #000; }
+      header, .slide-footer button { display: none; }
+      .deck-container { display: block; padding: 0; }
+      .slide {
+        position: relative;
+        opacity: 1 !important;
+        transform: none !important;
+        max-height: none;
+        height: auto;
+        page-break-after: always;
+        border: 1px solid #ccc;
+        background: #fff;
+        color: #000;
+        margin-bottom: 40px;
+        box-shadow: none;
+      }
+      .slide-title, .card-title { color: #000; }
+      .card { background: #f8fafc; border: 1px solid #ddd; }
+      .card-desc, .slide-subtitle { color: #475569; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span>🏛️ JanSeva AI</span>
+      <span class="badge">Pitch Deck (5-7 Slides)</span>
+    </div>
+    <div class="nav-controls">
+      <span id="slide-indicator" style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Slide 1 / 7</span>
+      <button class="btn" onclick="prevSlide()">◀ Previous</button>
+      <button class="btn btn-primary" onclick="nextSlide()">Next ▶</button>
+      <button class="btn" onclick="window.print()">🖨️ Export PDF</button>
+      <a href="./index.html" class="btn" style="text-decoration: none; background: #eff6ff; color: #1d4ed8; font-weight: 600;">🚀 Live Prototype</a>
+    </div>
+  </header>
+
+  <div class="deck-container">
+
+    <!-- SLIDE 1: Title -->
+    <div class="slide active" id="slide-1">
+      <div>
+        <span class="slide-tag">Autonomous Bureaucracy Execution Agent</span>
+        <h1 class="slide-title" style="font-size: 42px; margin-top: 8px;">JanSeva AI</h1>
+        <p class="slide-subtitle" style="font-size: 20px; color: var(--primary);">
+          Empowering 1.4 Billion Citizens with an Autonomous, Zero-PII AI Co-Pilot for Public Service Portals
+        </p>
+      </div>
+
+      <div class="content-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <div class="card-title">Gemini NLU & Reasoning</div>
+          <div class="card-desc">Converts everyday natural citizen speech into validated statutory eligibility checks and form actions.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🛡️</div>
+          <div class="card-title">Zero-PII Confidential Vault</div>
+          <div class="card-desc">Real Aadhaar & DL numbers never leave the citizen's machine. Tokenized and redacted at runtime.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🤖</div>
+          <div class="card-title">Autonomous Web Co-Pilot</div>
+          <div class="card-desc">Real desktop Chromium actuator with dynamic DOM perception and human-in-the-loop Silent Mode.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Team JanSeva • Built for India Hackathon</span>
+        <div class="dots" id="dots-container"></div>
+        <span>Use ◀ ▶ arrow keys to navigate</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: Problem -->
+    <div class="slide" id="slide-2">
+      <div>
+        <span class="slide-tag">The Challenge</span>
+        <h2 class="slide-title">The Crushing Friction of Digital Bureaucracy</h2>
+        <p class="slide-subtitle">While India has digitized thousands of public services, navigating them remains hostile for ordinary citizens.</p>
+      </div>
+
+      <div class="content-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="card">
+          <div class="card-icon">🏛️</div>
+          <div class="card-title">Fragmented Portals</div>
+          <div class="card-desc">Over 500+ disparate central and state portals (Parivahan, NSP, State RTOs) with conflicting UI patterns and legacy technology stacks.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📑</div>
+          <div class="card-title">Exclusion by Red Tape</div>
+          <div class="card-desc">Students and rural citizens miss scholarship deadlines due to 15-page wizards, rigid dropdown chains, and 200 KB document limits.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚠️</div>
+          <div class="card-title">Severe Privacy Leakage</div>
+          <div class="card-desc">Millions are forced to hand over original Aadhaar cards, OTPs, and PAN cards to unregulated cyber cafés, causing identity theft.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Slide 2: Problem Statement</span>
+        <div class="dots"></div>
+        <span>JanSeva AI Pitch Deck</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: Solution -->
+    <div class="slide" id="slide-3">
+      <div>
+        <span class="slide-tag">The Innovation</span>
+        <h2 class="slide-title">JanSeva AI: An Autonomous Public Service Co-Pilot</h2>
+        <p class="slide-subtitle">A citizen-side autonomous agent that bridges the gap between natural language requests and government portal execution.</p>
+      </div>
+
+      <div class="content-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="card">
+          <div class="card-icon">📎</div>
+          <div class="card-title">1. One-Click Document Ingestion</div>
+          <div class="card-desc">Citizens drop any marksheet, Driving License, or ID. The agent parses entities locally into a private Zero-PII Secret Vault.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🌐</div>
+          <div class="card-title">2. Dynamic Form Perception</div>
+          <div class="card-desc">No rigid mock forms or brittle selectors. Inspects live DOM elements, ARIA labels, and inputs on any public portal URL dynamically.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">⏸️</div>
+          <div class="card-title">3. Silent Mode Contract</div>
+          <div class="card-desc">Pauses safely for human CAPTCHA, SMS OTPs, or statutory approval directly on the citizen's screen, then resumes autofill seamlessly.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Slide 3: Proposed Solution</span>
+        <div class="dots"></div>
+        <span>JanSeva AI Pitch Deck</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: Architecture -->
+    <div class="slide" id="slide-4">
+      <div>
+        <span class="slide-tag">Engineering Deep-Dive</span>
+        <h2 class="slide-title">End-to-End System Architecture</h2>
+        <p class="slide-subtitle">Dual-loop agentic framework combining LLM reasoning with an isolated desktop browser actuator.</p>
+      </div>
+
+      <div class="content-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="card">
+          <div class="card-icon">🛡️</div>
+          <div class="card-title">Zero-PII Perception & Privacy Layer</div>
+          <div class="card-desc">
+            • <strong>Local Secret Vault:</strong> Tokens like <code>{{CITIZEN_AADHAAR_TOKEN}}</code> replace real numbers before calling Gemini API.<br>
+            • <strong>Local OCR & Parser:</strong> PyMuPDF / Tesseract running offline to ingest marksheets and DL scans without cloud leaks.<br>
+            • <strong>Statutory Rule Engine:</strong> Deterministic YAML rule evaluation (Motor Vehicles Act Form 1A age thresholds, CSS income caps).
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🚀</div>
+          <div class="card-title">Autonomous Actuation Engine</div>
+          <div class="card-desc">
+            • <strong>Headed Chromium Actuator:</strong> Real Playwright engine operating with 400ms slow-mo and visual element highlighting.<br>
+            • <strong>Windows Proactor Worker:</strong> Thread-isolated event loop avoiding event-loop blocking on Windows workstations.<br>
+            • <strong>Real-Time WebSocket Stream:</strong> Broadcasts agent reasoning thoughts, DOM field mappings, and verified receipts to UI.
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Slide 4: Technical Architecture</span>
+        <div class="dots"></div>
+        <span>JanSeva AI Pitch Deck</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: Key Features -->
+    <div class="slide" id="slide-5">
+      <div>
+        <span class="slide-tag">Safety & Reliability</span>
+        <h2 class="slide-title">Enterprise Safety & Guardrail Innovations</h2>
+        <p class="slide-subtitle">Engineered with defense-in-depth to guarantee compliance with Indian digital privacy and security laws.</p>
+      </div>
+
+      <div class="content-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="card">
+          <div class="card-icon">🔒</div>
+          <div class="card-title">Zero-Hallucination Policy</div>
+          <div class="card-desc">The agent strictly refuses to invent or guess applicant fields. If required data is missing from the vault, it halts and asks the citizen.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🤝</div>
+          <div class="card-title">Human-in-the-Loop Contract</div>
+          <div class="card-desc">Never attempts to bypass CAPTCHA, brute force OTPs, or auto-submit statutory declarations. Explicit consent required before final submission.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📜</div>
+          <div class="card-title">Cryptographic Receipt Trail</div>
+          <div class="card-desc">Generates tamper-evident timestamped receipts with application reference IDs (e.g. <code>DL-RJ01-2026-904821</code>) for auditability.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Slide 5: Features & Safety</span>
+        <div class="dots"></div>
+        <span>JanSeva AI Pitch Deck</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: Demo & Use Cases -->
+    <div class="slide" id="slide-6">
+      <div>
+        <span class="slide-tag">Validation</span>
+        <h2 class="slide-title">Demonstrated Use Cases & Benchmark Results</h2>
+        <p class="slide-subtitle">Tested against real production portals and validated with 107 comprehensive automated test suites.</p>
+      </div>
+
+      <div class="content-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="card">
+          <div class="card-icon">🚗</div>
+          <div class="card-title">Use Case 1: MoRTH Parivahan Sarathi</div>
+          <div class="card-desc">
+            • <strong>Portal:</strong> Driving License Services (Form 9 Renewal)<br>
+            • <strong>Workflow:</strong> Automatic jurisdiction selection (Rajasthan), Select2 handling, Form 1A age exemption verification, DL & DOB autofill, Silent Mode for CAPTCHA.<br>
+            • <strong>Result:</strong> Reduced 25-minute manual struggle to a 45-second assisted flow.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎓</div>
+          <div class="card-title">Use Case 2: National Scholarship Portal (NSP)</div>
+          <div class="card-desc">
+            • <strong>Portal:</strong> Central Sector Scheme for College Students<br>
+            • <strong>Workflow:</strong> Academic record extraction, 80th percentile merit check, annual income validation, marksheet PDF attachment, and receipt generation.<br>
+            • <strong>Test Coverage:</strong> 107/107 unit & integration tests passing with 100% reliability.
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Slide 6: Live Results & Use Cases</span>
+        <div class="dots"></div>
+        <span>JanSeva AI Pitch Deck</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: Future Scope -->
+    <div class="slide" id="slide-7">
+      <div>
+        <span class="slide-tag">Vision & Roadmap</span>
+        <h2 class="slide-title">Roadmap to Impact: Scaling to Bharat</h2>
+        <p class="slide-subtitle">Transforming public service delivery from painful bureaucracy into seamless, dignified citizen experiences.</p>
+      </div>
+
+      <div class="content-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="card">
+          <div class="card-icon">🗣️</div>
+          <div class="card-title">Bhashini Multilingual Voice</div>
+          <div class="card-desc">Support for 22 scheduled Indian regional languages with speech-to-text so non-English literate citizens can apply via voice.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🗂️</div>
+          <div class="card-title">DigiLocker & India Stack</div>
+          <div class="card-desc">Direct consent-driven credential fetch from DigiLocker API, eliminating manual document uploads entirely.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🏪</div>
+          <div class="card-title">Offline Village Kiosks (CSC)</div>
+          <div class="card-desc">Edge deployment for 300,000+ Common Service Centers (CSCs) across rural India to supercharge village-level entrepreneurs.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Slide 7: Future Scope & Impact</span>
+        <div class="dots"></div>
+        <span>JanSeva AI • Thank You!</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 7;
+
+    function showSlide(index) {
+      if (index < 1) index = 1;
+      if (index > totalSlides) index = totalSlides;
+      currentSlide = index;
+
+      document.querySelectorAll('.slide').forEach((el, idx) => {
+        if (idx + 1 === currentSlide) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+
+      document.getElementById('slide-indicator').innerText = `Slide ${currentSlide} / ${totalSlides}`;
+      renderDots();
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) showSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) showSlide(currentSlide - 1);
+    }
+
+    function renderDots() {
+      document.querySelectorAll('.dots').forEach(container => {
+        container.innerHTML = '';
+        for (let i = 1; i <= totalSlides; i++) {
+          const d = document.createElement('div');
+          d.className = 'dot' + (i === currentSlide ? ' active' : '');
+          d.onclick = () => showSlide(i);
+          container.appendChild(d);
+        }
+      });
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        prevSlide();
+      }
+    });
+
+    renderDots();
+  </script>
+</body>
+</html>

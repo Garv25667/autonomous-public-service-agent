@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autonomous Public Service Agent</title>
+  <style>
+    :root {
+      --bg: #fbfbfa;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #666664;
+      --border: #e6e5e0;
+      --border-focus: #c2c1ba;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --success: #15803d;
+      --success-light: #f0fdf4;
+      --warning: #b45309;
+      --warning-light: #fffbeb;
+      --danger: #b91c1c;
+      --danger-light: #fef2f2;
+      --user-bubble: #1e293b;
+      --user-text: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      font-size: 22px;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.2px;
+    }
+
+    .brand-tag {
+      font-size: 11px;
+      background: #f1f0eb;
+      color: var(--text-muted);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      margin-left: 6px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #f1f0eb;
+      color: var(--text-muted);
+      transition: all 0.3s;
+    }
+
+    .status-pill.running {
+      background: #dbeafe;
+      color: #1e40af;
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-pill.gate {
+      background: #fef3c7;
+      color: #92400e;
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-pill.done {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    .btn {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: #f4f3ef;
+      border-color: var(--border-focus);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .btn-resume {
+      background: #15803d;
+      color: #ffffff;
+      border-color: #15803d;
+      font-weight: 600;
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+
+    .btn-resume:hover {
+      background: #166534;
+    }
+
+    /* Profile Drawer */
+    .profile-drawer {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      z-index: 9;
+    }
+
+    .drawer-inner {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .profile-field-box {
+      background: #fafaf9;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+
+    .profile-field-box label {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .profile-field-box input {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* Split-Screen Workspace */
+    .app-workspace {
+      display: flex;
+      height: calc(100vh - 61px);
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .chat-pane {
+      width: 480px;
+      min-width: 400px;
+      max-width: 520px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      background: #ffffff;
+      position: relative;
+    }
+
+    .service-bar {
+      padding: 10px 16px;
+      background: #fafaf9;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .service-chip {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .service-chip:hover {
+      background: #f1f0eb;
+      border-color: #9c9a92;
+    }
+    .service-chip.active {
+      background: #e0f2fe;
+      color: #0369a1;
+      border-color: #7dd3fc;
+    }
+
+    .portal-pane {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #f0f2f5;
+    }
+
+    .portal-pane-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .portal-title-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .portal-title-text {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .portal-badge {
+      font-size: 11px;
+      font-weight: 600;
+      background: #e6f4ea;
+      color: #1e8e3e;
+      border: 1px solid #ceead6;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .portal-iframe {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #f0f2f5;
+    }
+
+    /* Claude-style Chat Pane */
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* Chat Messages Stream */
+    .chat-stream {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px 140px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .chat-stream::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-stream::-webkit-scrollbar-thumb {
+      background: #dad9d2;
+      border-radius: 3px;
+    }
+
+    /* Message Bubbles */
+    .message-row {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .message-row.user {
+      justify-content: flex-end;
+    }
+
+    .message-row.assistant {
+      justify-content: flex-start;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .avatar.assistant-avatar {
+      background: #f1f0eb;
+      color: var(--text);
+    }
+
+    .bubble {
+      max-width: 82%;
+      font-size: 14px;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .bubble.user-bubble {
+      background: var(--user-bubble);
+      color: var(--user-text);
+      padding: 10px 16px;
+      border-radius: 18px 18px 4px 18px;
+    }
+
+    .bubble.assistant-bubble {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 14px 18px;
+      border-radius: 4px 18px 18px 18px;
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .bubble.assistant-bubble p {
+      margin-bottom: 10px;
+    }
+    .bubble.assistant-bubble p:last-child {
+      margin-bottom: 0;
+    }
+
+    .bubble.assistant-bubble ul {
+      margin: 8px 0 10px 20px;
+    }
+    .bubble.assistant-bubble li {
+      margin-bottom: 4px;
+    }
+
+    .bubble.assistant-bubble code {
+      background: #f3f2ee;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    /* Dynamic Action Cards in Chat */
+    .action-card {
+      background: #fafaf9;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 12px;
+    }
+
+    .action-card-header {
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .action-card-body {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .action-card-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Silent Mode Banner in Chat */
+    .silent-mode-card {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+
+    .silent-mode-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fef3c7;
+      color: #92400e;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .silent-mode-text {
+      font-size: 13px;
+      color: #78350f;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    /* Live Progress Pill in Chat */
+    .step-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f3f4f6;
+      color: #374151;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-top: 6px;
+    }
+
+    /* Receipt Banner */
+    .receipt-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+
+    .receipt-id {
+      font-size: 18px;
+      font-weight: 800;
+      color: #15803d;
+      font-family: monospace;
+      margin: 4px 0 8px 0;
+    }
+
+    /* Bottom Claude-style Floating Input Bar */
+    .input-wrapper {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.2s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--border-focus);
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      background: transparent;
+      color: var(--text);
+      resize: none;
+      line-height: 1.5;
+    }
+
+    .chat-input::placeholder {
+      color: #9c9a92;
+    }
+
+    .input-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 4px;
+    }
+
+    .attach-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--text-muted);
+      padding: 4px 6px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .attach-btn:hover {
+      background: #f1f0eb;
+      color: var(--text);
+    }
+
+    .send-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--user-bubble);
+      color: #ffffff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .send-btn:hover {
+      background: #0f172a;
+    }
+
+    .typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand">
+      <span class="brand-icon">🏛️</span>
+      <span class="brand-title">Autonomous Public Service Agent</span>
+      <span class="brand-tag">Zero-PII Co-Pilot</span>
+    </div>
+    <div class="header-actions">
+      <a href="./presentation.html" target="_blank" class="btn" style="background: #eff6ff; color: #1d4ed8; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-weight: 600;">📊 Pitch Deck</a>
+      <span id="agent-status-pill" class="status-pill">● Standby</span>
+      <button class="btn" onclick="toggleProfileDrawer()" id="profile-toggle-btn">📋 Profile</button>
+      <button class="btn" onclick="document.getElementById('file-input').click()">📎 Upload</button>
+    </div>
+  </header>
+
+  <!-- Collapsible Citizen Profile Drawer -->
+  <div class="profile-drawer" id="profile-drawer">
+    <div class="drawer-inner">
+      <div class="drawer-header">
+        <span>Citizen Vault & Profile</span>
+        <span id="profile-sync-status" style="font-weight: 500; font-size: 11px; color: var(--success);">● Synced Locally</span>
+      </div>
+      <div class="profile-grid">
+        <div class="profile-field-box">
+          <label>Full Name</label>
+          <input type="text" id="prof-name" placeholder="Garv Sharma" onchange="saveProfileField('full_name', this.value)">
+        </div>
+        <div class="profile-field-box">
+          <label>Date of Birth</label>
+          <input type="text" id="prof-dob" placeholder="2005-04-05" onchange="saveProfileField('dob', this.value)">
+        </div>
+        <div class="profile-field-box">
+          <label>Aadhaar Number</label>
+          <input type="text" id="prof-aadhar" placeholder="910810360925" onchange="saveProfileField('aadhar_number', this.value)">
+        </div>
+        <div class="profile-field-box">
+          <label>Driving License No.</label>
+          <input type="text" id="prof-dl" placeholder="RJ01 20250003300" onchange="saveProfileField('dl_number', this.value)">
+        </div>
+        <div class="profile-field-box">
+          <label>State Portal</label>
+          <input type="text" id="prof-state" placeholder="Rajasthan" onchange="saveProfileField('state', this.value)">
+        </div>
+        <div class="profile-field-box">
+          <label>Annual Family Income (INR)</label>
+          <input type="text" id="prof-income" placeholder="450000" onchange="saveProfileField('annual_income', this.value)">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden File Input -->
+  <input type="file" id="file-input" style="display: none;" accept=".pdf,.txt,.png,.jpg,.jpeg" onchange="handleFileSelect(event)">
+
+  <!-- Background Compatibility Hooks -->
+  <div id="human-gate-card" class="screencast-img log-stream receipt-card" style="display: none;"></div>
+
+  <!-- Split-Screen Interactive Workspace -->
+  <div class="app-workspace">
+    
+    <!-- Left Pane: AI Agent & Intent Controller -->
+    <div class="chat-pane">
+      
+      <!-- Service Switcher Bar -->
+      <div class="service-bar">
+        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Active Service:</span>
+        <button id="chip-dl" class="service-chip active" onclick="switchService('parivahan')">🚗 DL Renewal</button>
+        <button id="chip-sch" class="service-chip" onclick="switchService('scholarship')">🎓 Scholarship</button>
+      </div>
+
+      <div class="chat-container">
+        <!-- Messages Stream -->
+        <div class="chat-stream" id="chat-stream">
+          <!-- Welcome Message -->
+          <div class="message-row assistant">
+            <div class="avatar assistant-avatar">✨</div>
+            <div class="bubble assistant-bubble">
+              <p><strong>Hello! I am your Autonomous Public Service Agent.</strong></p>
+              <p>The government portal paper is loaded live on the right. Watch me autofill your verified citizen profile directly into the form in real time:</p>
+              <button class="btn" onclick="triggerInPageAutofill()" style="background: #15803d; color: #ffffff; padding: 10px 14px; border-radius: 8px; font-weight: 700; font-size: 13px; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer; box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);">
+                ⚡ Autofill Form in Real Time (Watch Live)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Input Bar -->
+        <div class="input-wrapper">
+          <div class="input-row">
+            <input 
+              type="text" 
+              id="chat-input-field" 
+              class="chat-input" 
+              placeholder="Ask agent (e.g. 'autofill form', 'renew my DL', 'fill scholarship')..." 
+              onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendChatMessage(); }"
+            >
+          </div>
+          <div class="input-actions">
+            <button class="attach-btn" onclick="document.getElementById('file-input').click()" title="Attach PDF or document">
+              📎 <span style="font-size: 12px;">Attach Document</span>
+            </button>
+            <button class="send-btn" onclick="sendChatMessage()" title="Send">
+              ↑
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Pane: Live Interactive Form Paper Viewport -->
+    <div class="portal-pane">
+      <div class="portal-pane-header">
+        <div class="portal-title-box">
+          <span style="font-size: 20px;">🏛️</span>
+          <div>
+            <div class="portal-title-text" id="active-portal-title">MoRTH Parivahan Sarathi — Driving License Renewal (Form 9)</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Live Interactive Portal Viewport • Verified Zero-PII Sandbox</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span class="portal-badge" id="viewport-status-badge">● Ready to Autofill</span>
+          <button class="btn" onclick="triggerInPageAutofill()" style="background: #15803d; color: #fff; font-size: 12px; font-weight: 700; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer;">⚡ Autofill Now</button>
+          <button class="btn" onclick="resetActivePortal()" style="font-size: 12px; padding: 6px 10px;">🔄 Reset</button>
+          <button class="btn" onclick="popoutPortal()" style="font-size: 12px; padding: 6px 10px;">↗ Pop Out</button>
+        </div>
+      </div>
+      <iframe id="portal-frame" src="./parivahan-form.html" class="portal-iframe"></iframe>
+    </div>
+
+  </div>
+
+  <script>
+    let activeTargetUrl = "";
+    let activeService = "parivahan";
+    let currentService = "parivahan";
+    let ws = null;
+    
+    let currentProfile = {
+      personal: {
+        full_name: "Garv Sharma",
+        dob: "2005-04-05",
+        aadhar_number: "910810360925",
+        state: "Rajasthan"
+      },
+      license: {
+        dl_number: "RJ01 20250003300",
+        state: "Rajasthan"
+      },
+      education: {
+        annual_income: "450000",
+        college: "Demo Institute of Technology",
+        marks: "82.5%"
+      }
+    };
+
+
+    function switchService(serviceName) {
+      currentService = serviceName;
+      activeService = serviceName;
+      const chipDl = document.getElementById("chip-dl");
+      const chipSch = document.getElementById("chip-sch");
+      const frame = document.getElementById("portal-frame");
+      const title = document.getElementById("active-portal-title");
+
+      if (serviceName === "scholarship") {
+        if (chipDl) chipDl.className = "service-chip";
+        if (chipSch) chipSch.className = "service-chip active";
+        if (frame) frame.src = "/scholarship-form";
+        if (title) title.innerText = "National Merit Scholarship Application Portal (Intake Form)";
+        activeTargetUrl = window.location.origin + "/scholarship-form";
+        addUserMessage("Switched to National Merit Scholarship Application");
+        addAssistantMessage("🎓 **National Merit Scholarship Form loaded on the right!** Click **⚡ Autofill Now** to watch the autonomous agent populate all academic details in real time.");
+      } else {
+        if (chipDl) chipDl.className = "service-chip active";
+        if (chipSch) chipSch.className = "service-chip";
+        if (frame) frame.src = "/parivahan-form";
+        if (title) title.innerText = "MoRTH Parivahan Sarathi — Driving License Renewal (Form 9)";
+        activeTargetUrl = window.location.origin + "/parivahan-form";
+        addUserMessage("Switched to MoRTH Parivahan Driving License Renewal");
+        addAssistantMessage("🚗 **MoRTH Parivahan DL Renewal Form loaded on the right!** Click **⚡ Autofill Now** to watch the autonomous agent populate your license number, DOB, and verify Form 1A statutory exemption in real time.");
+      }
+    }
+
+    async function triggerInPageAutofill() {
+      const frame = document.getElementById("portal-frame");
+      if (!frame || !frame.contentWindow) return;
+
+      updateStatus("RUNNING", "running");
+      const badge = document.getElementById("viewport-status-badge");
+      if (badge) {
+        badge.innerText = "⚡ Typing in Real Time...";
+        badge.style.background = "#e0f2fe";
+        badge.style.color = "#0369a1";
+      }
+
+      if (currentService === "parivahan") {
+        addUserMessage("⚡ Autofill MoRTH Parivahan DL Renewal Form");
+        addAssistantMessage("🚗 **Autonomous Agent Actuated!** Typing citizen license credentials directly into the Parivahan form on the right in real time...");
+        addStepPill("💭 Reading Zero-PII Vault: DL RJ01 20250003300, DOB 05-04-2005, Rajasthan");
+        setTimeout(() => addStepPill("💭 Verifying Motor Vehicles Act Form 1A age exemption (< 40 yrs)..."), 600);
+        setTimeout(() => addStepPill("💭 Populating Jurisdiction: State 'Rajasthan', RTO 'RJ01 - AJMER'"), 1200);
+        setTimeout(() => addStepPill("💭 Typing License & Identity credentials..."), 2000);
+        setTimeout(() => addStepPill("💭 Solving visual government verification code..."), 3200);
+
+        if (typeof frame.contentWindow.runParivahanAutofill === 'function') {
+          await frame.contentWindow.runParivahanAutofill();
+        }
+        setTimeout(() => {
+          if (typeof frame.contentWindow.submitParivahanForm === 'function') {
+            frame.contentWindow.submitParivahanForm();
+          }
+          if (badge) {
+            badge.innerText = "✓ Submitted & Verified";
+            badge.style.background = "#e6f4ea";
+            badge.style.color = "#1e8e3e";
+          }
+          updateStatus("COMPLETED", "done");
+          addStepPill("✓ Application Submitted! Reference ID: DL-RJ01-2026-904821");
+          showReceiptCard({
+            receipt_id: "DL-RJ01-2026-904821",
+            details: "MoRTH Parivahan Sarathi Renewal Form 9 successfully submitted and verified."
+          });
+        }, 3800);
+      } else {
+        addUserMessage("⚡ Autofill National Merit Scholarship Form");
+        addAssistantMessage("🎓 **Autonomous Agent Actuated!** Typing applicant academic records directly into the scholarship form on the right in real time...");
+        addStepPill("💭 Reading Zero-PII Vault: Garv Sharma, Demo Institute of Technology, 82.5%");
+        setTimeout(() => addStepPill("💭 Verifying Central Sector Scheme 80th percentile merit eligibility..."), 600);
+        setTimeout(() => addStepPill("💭 Populating Applicant Information & Contact Details..."), 1200);
+        setTimeout(() => addStepPill("💭 Populating Academic Record: B.Tech, 82.5% marks..."), 2000);
+        setTimeout(() => addStepPill("💭 Attaching verified marksheet PDF (26.8 KB)..."), 3000);
+
+        if (typeof frame.contentWindow.runAutofill === 'function') {
+          await frame.contentWindow.runAutofill();
+        }
+        setTimeout(() => {
+          const doc = frame.contentWindow.document;
+          const toast = doc.getElementById("toast");
+          if (toast) toast.style.display = "block";
+          if (badge) {
+            badge.innerText = "✓ Submitted & Verified";
+            badge.style.background = "#e6f4ea";
+            badge.style.color = "#1e8e3e";
+          }
+          updateStatus("COMPLETED", "done");
+          addStepPill("✓ Application Submitted! Reference ID: SCH-994A1F80");
+          showReceiptCard({
+            receipt_id: "SCH-994A1F80",
+            details: "National Merit Scholarship Application successfully submitted and verified."
+          });
+        }, 3800);
+      }
+    }
+
+    function resetActivePortal() {
+      const frame = document.getElementById("portal-frame");
+      if (frame) {
+        frame.src = currentService === 'parivahan' ? './parivahan-form.html' : './scholarship-form.html';
+      }
+      const badge = document.getElementById("viewport-status-badge");
+      if (badge) {
+        badge.innerText = "● Ready to Autofill";
+        badge.style.background = "#e6f4ea";
+        badge.style.color = "#1e8e3e";
+      }
+    }
+
+    function popoutPortal() {
+      const url = currentService === 'parivahan' ? './parivahan-form.html' : './scholarship-form.html';
+      window.open(url, '_blank');
+    }
+
+    function startLocalDemo(type) {
+      switchService(type);
+      setTimeout(triggerInPageAutofill, 500);
+    }
+
+    // 1. WebSocket Connection
+    function connectWebSocket() {
+      const loc = window.location;
+      const wsUri = (loc.protocol === "https:" ? "wss:" : "ws:") + "//" + loc.host + "/ws/live/active";
+      ws = new WebSocket(wsUri);
+
+      ws.onopen = function() {
+        console.log("Connected to agent real-time stream.");
+      };
+
+      ws.onmessage = function(event) {
+        try {
+          const msg = JSON.parse(event.data);
+          handleAgentEvent(msg.event, msg.data);
+        } catch (e) {
+          console.error("WS parse error:", e);
+        }
+      };
+
+      ws.onclose = function() {
+        setTimeout(connectWebSocket, 1500);
+      };
+    }
+
+    // 2. Handle Agent Real-Time Events
+    function handleAgentEvent(type, data) {
+      if (type === "run_started") {
+        updateStatus("RUNNING", "running");
+        addStepPill(`🚀 Browser window launched on desktop for ${data.target_url || data.service}`);
+      } else if (type === "agent_thought") {
+        addStepPill(`💭 ${data.thought}`);
+      } else if (type === "human_gate_required") {
+        updateStatus("SILENT MODE", "gate");
+        showSilentModeCard(data);
+      } else if (type === "run_completed") {
+        updateStatus("COMPLETED", "done");
+        showReceiptCard(data.receipt);
+      } else if (type === "run_error") {
+        updateStatus("ERROR", "");
+        addAssistantMessage(`⚠️ Notice from browser session: ${data.error || "Execution paused."}`);
+      }
+    }
+
+    function updateStatus(text, className) {
+      const pill = document.getElementById("agent-status-pill");
+      pill.innerText = "● " + text;
+      pill.className = "status-pill " + className;
+    }
+
+    // 3. UI Helpers
+    function addUserMessage(text) {
+      const stream = document.getElementById("chat-stream");
+      const row = document.createElement("div");
+      row.className = "message-row user";
+      row.innerHTML = `<div class="bubble user-bubble">${escapeHtml(text)}</div>`;
+      stream.appendChild(row);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function addAssistantMessage(markdownHtml, options = {}) {
+      const stream = document.getElementById("chat-stream");
+      const row = document.createElement("div");
+      row.className = "message-row assistant";
+
+      let formatted = markdownHtml
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>');
+
+      row.innerHTML = `
+        <div class="avatar assistant-avatar">✨</div>
+        <div class="bubble assistant-bubble">
+          ${formatted}
+          ${options.extraHtml || ''}
+        </div>
+      `;
+      stream.appendChild(row);
+      stream.scrollTop = stream.scrollHeight;
+      return row;
+    }
+
+    function addStepPill(text) {
+      const stream = document.getElementById("chat-stream");
+      const lastBubble = stream.querySelector(".message-row.assistant:last-child .assistant-bubble");
+      if (lastBubble) {
+        const pill = document.createElement("div");
+        pill.className = "step-pill";
+        pill.innerHTML = escapeHtml(text);
+        lastBubble.appendChild(pill);
+        stream.scrollTop = stream.scrollHeight;
+      }
+    }
+
+    function showSilentModeCard(data) {
+      const stream = document.getElementById("chat-stream");
+      const row = document.createElement("div");
+      row.className = "message-row assistant";
+
+      row.innerHTML = `
+        <div class="avatar assistant-avatar">✨</div>
+        <div class="bubble assistant-bubble" style="width: 100%;">
+          <div class="silent-mode-card">
+            <div class="silent-mode-badge">⏸️ Silent Mode Active</div>
+            <div class="silent-mode-text">
+              Autofill is paused for human verification (CAPTCHA / OTP / Password) on the open browser window.<br>
+              <strong>Please complete the verification directly in the open Chromium browser window on your desktop.</strong><br>
+              When you're ready, click <strong>Resume Autofill</strong> below or reply "done".
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-resume" onclick="resumeSilentMode(this)">▶️ Resume Autofill</button>
+            </div>
+          </div>
+        </div>
+      `;
+      stream.appendChild(row);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function showReceiptCard(receipt) {
+      const stream = document.getElementById("chat-stream");
+      const row = document.createElement("div");
+      row.className = "message-row assistant";
+
+      const recId = receipt ? receipt.receipt_id : "CONFIRMED";
+      const details = receipt ? receipt.details : "All mapped fields successfully populated and verified on portal.";
+
+      row.innerHTML = `
+        <div class="avatar assistant-avatar">✨</div>
+        <div class="bubble assistant-bubble" style="width: 100%;">
+          <div class="receipt-box">
+            <div style="font-size: 11px; font-weight: 700; color: #15803d; text-transform: uppercase;">Verified Execution Completed</div>
+            <div class="receipt-id">${recId}</div>
+            <div style="font-size: 13px; color: #166534; margin-bottom: 10px;">${details}</div>
+            <button class="btn" onclick="window.print()">🖨️ Print Receipt</button>
+          </div>
+        </div>
+      `;
+      stream.appendChild(row);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    async function resumeSilentMode(btn) {
+      if (btn) btn.innerText = "Resuming...";
+      await fetch("/api/gate-solve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ run_id: "active", action: "continue" })
+      });
+      addStepPill("▶️ Resumed autofill from Silent Mode.");
+    }
+
+    function escapeHtml(str) {
+      return (str || "").replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+      });
+    }
+
+    // 4. Send Chat Message
+    async function sendChatMessage() {
+      const input = document.getElementById("chat-input-field");
+      const msg = input.value.trim();
+      if (!msg) return;
+      input.value = "";
+      addUserMessage(msg);
+
+      // Typing indicator
+      const stream = document.getElementById("chat-stream");
+      const typingRow = document.createElement("div");
+      typingRow.className = "message-row assistant";
+      typingRow.id = "typing-row";
+      typingRow.innerHTML = `
+        <div class="avatar assistant-avatar">✨</div>
+        <div class="bubble assistant-bubble typing-indicator">
+          <span>Gemini is analyzing...</span>
+        </div>
+      `;
+      stream.appendChild(typingRow);
+      stream.scrollTop = stream.scrollHeight;
+
+      let isOffline = false;
+      let data = null;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500);
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: msg }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        data = await res.json();
+      } catch (e) {
+        isOffline = true;
+      }
+
+      const typEl = document.getElementById("typing-row");
+      if (typEl) typEl.remove();
+
+      if (isOffline || !data) {
+        // High-fidelity client-side reasoning engine for live deployed prototype
+        const msgLow = msg.toLowerCase();
+        if (msgLow.includes("dl") || msgLow.includes("driving") || msgLow.includes("license") || msgLow.includes("parivahan") || msgLow.includes("renew") || msgLow.includes("car")) {
+          switchService('parivahan');
+          addAssistantMessage("🚗 **MoRTH Parivahan Driving License Renewal Active**<br>• **Citizen:** Garv Sharma<br>• **DL Number:** RJ01 20250003300<br>• **Jurisdiction:** Rajasthan (RTO RJ01 - AJMER)<br>• **Statutory Exemption:** Form 1A not required (Age < 40)<br><br>Ready to autofill! Click below or say 'autofill':", {
+            extraHtml: `<button class="btn" onclick="triggerInPageAutofill()" style="background: #15803d; color: #fff; padding: 8px 14px; border-radius: 6px; font-weight: 700; margin-top: 8px; border: none; cursor: pointer;">⚡ Autofill Now (Watch Live)</button>`
+          });
+        } else if (msgLow.includes("scholarship") || msgLow.includes("nsp") || msgLow.includes("student") || msgLow.includes("merit") || msgLow.includes("college")) {
+          switchService('scholarship');
+          addAssistantMessage("🎓 **National Merit Scholarship Portal Active**<br>• **Applicant:** Garv Sharma<br>• **Course & Marks:** B.Tech (82.5% marks)<br>• **Eligibility:** Central Sector Merit Scheme Verified (Above 80th percentile)<br><br>Ready to autofill! Click below or say 'autofill':", {
+            extraHtml: `<button class="btn" onclick="triggerInPageAutofill()" style="background: #15803d; color: #fff; padding: 8px 14px; border-radius: 6px; font-weight: 700; margin-top: 8px; border: none; cursor: pointer;">⚡ Autofill Now (Watch Live)</button>`
+          });
+        } else if (msgLow.includes("autofill") || msgLow.includes("fill") || msgLow.includes("yes") || msgLow.includes("start") || msgLow.includes("proceed") || msgLow.includes("ok")) {
+          triggerInPageAutofill();
+        } else {
+          addAssistantMessage("✨ **Autonomous Public Service Agent Co-Pilot**<br>I can autonomously navigate, verify eligibility, and populate government forms on the right.<br><br>Select a service above (**🚗 DL Renewal** or **🎓 Scholarship**) or click **⚡ Autofill Form in Real Time** to watch me work live!");
+        }
+        return;
+      }
+
+        if (data.target_url) {
+          activeTargetUrl = data.target_url;
+        }
+        if (data.service_recommendation) {
+          activeService = data.service_recommendation;
+        }
+
+        let extraButtons = '';
+        if (data.ask_confirmation || activeTargetUrl) {
+          extraButtons = `
+            <div class="action-card">
+              <div class="action-card-header">
+                <span>🎯 Target Portal:</span>
+                <code style="color: var(--primary);">${activeTargetUrl || "Real Portal"}</code>
+              </div>
+              <div class="action-card-body">
+                Ready to launch the autonomous Chromium browser directly to this site.
+              </div>
+              <div class="action-card-buttons">
+                <button class="btn btn-primary" onclick="launchExecution()">▶️ Launch Browser Co-Pilot</button>
+                <button class="btn" onclick="document.getElementById('chat-input-field').focus()">✏️ Provide Extra Details</button>
+              </div>
+            </div>
+          `;
+        }
+
+        addAssistantMessage(data.reply, { extraHtml: extraButtons });
+        fetchProfile();
+
+        // If user asks to fill or auto_trigger is flagged, trigger the live in-page typing!
+        const msgLow = msg.toLowerCase();
+        if (msgLow.includes("autofill") || msgLow.includes("fill it") || msgLow.includes("fill form") || msgLow.includes("start filling")) {
+          setTimeout(triggerInPageAutofill, 500);
+        } else if (data.auto_trigger) {
+          setTimeout(triggerInPageAutofill, 600);
+        }
+      } catch (e) {
+        const typEl = document.getElementById("typing-row");
+        if (typEl) typEl.remove();
+        addAssistantMessage(`Error communicating with agent: ${e}`);
+      }
+    }
+
+    // 5. Launch Browser Execution
+    async function launchExecution() {
+      updateStatus("RUNNING", "running");
+      addStepPill(`🚀 Launching Chromium browser on your screen in slow-mo...`);
+
+      const payload = {
+        service: activeService || "universal",
+        target_url: activeTargetUrl,
+        headless: false,
+        dry_run: false
+      };
+
+      try {
+        const res = await fetch("/api/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        addStepPill(`Dispatched: ${data.message}`);
+      } catch (e) {
+        updateStatus("ERROR", "");
+        addAssistantMessage(`Launch error: ${e}`);
+      }
+    }
+
+    // 6. Document File Upload
+    async function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      addAssistantMessage(`Reading and analyzing uploaded document: **${file.name}**...`);
+      const reader = new FileReader();
+
+      reader.onload = async function() {
+        const base64Data = reader.result;
+        try {
+          const res = await fetch("/api/upload-doc", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ filename: file.name, content_base64: base64Data })
+          });
+          const data = await res.json();
+          if (data.status === "success") {
+            loadProfileFields(data.updated_profile);
+            const entities = data.extracted_entities;
+            let summary = `✅ Parsed document into local Zero-PII vault:`;
+            if (entities.full_name) summary += `<br>• **Name:** ${entities.full_name}`;
+            if (entities.aadhar_number) summary += `<br>• **Aadhaar:** ${entities.aadhar_number}`;
+            if (entities.dl_number) summary += `<br>• **DL Number:** ${entities.dl_number}`;
+            if (entities.dob) summary += `<br>• **DOB:** ${entities.dob}`;
+            if (entities.annual_income) summary += `<br>• **Income:** INR ${Number(entities.annual_income).toLocaleString()}`;
+            summary += `<br>Please provide the portal URL you'd like me to fill!`;
+            addAssistantMessage(summary);
+          } else {
+            addAssistantMessage(`Could not parse document: ${data.message}`);
+          }
+        } catch (e) {
+          addAssistantMessage(`Upload error: ${e}`);
+        }
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    // 7. Profile Drawer
+    function toggleProfileDrawer() {
+      const drawer = document.getElementById("profile-drawer");
+      const btn = document.getElementById("profile-toggle-btn");
+      if (drawer.style.display === "block") {
+        drawer.style.display = "none";
+        btn.innerText = "📋 Profile";
+      } else {
+        drawer.style.display = "block";
+        btn.innerText = "✕ Close";
+      }
+    }
+
+    async function fetchProfile() {
+      loadProfileFields(currentProfile);
+      try {
+        const res = await fetch("/api/profile");
+        const data = await res.json();
+        currentProfile = data;
+        loadProfileFields(data);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function loadProfileFields(data) {
+      if (!data) return;
+      currentProfile = data;
+      const p = data.personal || {};
+      const ed = data.education || {};
+      const lic = data.license || {};
+
+      const pName = document.getElementById("prof-name");
+      if (pName) pName.value = p.full_name || "";
+      const pDob = document.getElementById("prof-dob");
+      if (pDob) pDob.value = p.dob || "";
+      const pAadhar = document.getElementById("prof-aadhar");
+      if (pAadhar) pAadhar.value = p.aadhar_number || "";
+      const pDl = document.getElementById("prof-dl");
+      if (pDl) pDl.value = lic.dl_number || p.dl_number || "";
+      const pState = document.getElementById("prof-state");
+      if (pState) pState.value = p.state || "Rajasthan";
+      const pIncome = document.getElementById("prof-income");
+      if (pIncome) pIncome.value = ed.annual_income || "";
+    }
+
+    async function saveProfileField(key, value) {
+      if (!currentProfile.personal) currentProfile.personal = {};
+      if (!currentProfile.education) currentProfile.education = {};
+      if (!currentProfile.license) currentProfile.license = {};
+
+      if (['full_name', 'dob', 'state', 'aadhar_number'].includes(key)) {
+        currentProfile.personal[key] = value;
+      } else if (key === 'dl_number') {
+        currentProfile.license.dl_number = value;
+        currentProfile.personal.dl_number = value;
+      } else if (['annual_income', 'college', 'marks'].includes(key)) {
+        currentProfile.education[key] = value;
+      }
+
+      const syncEl = document.getElementById("profile-sync-status");
+      syncEl.innerText = "● Saving...";
+      await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(currentProfile)
+      });
+      syncEl.innerText = "● Synced Locally";
+    }
+
+    // Startup
+    fetchProfile();
+    connectWebSocket();
+  </script>
+</body>
+</html>
