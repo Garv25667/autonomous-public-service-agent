@@ -1,4 +1,4 @@
-# Harness: Synthetic Profile & Execution Contracts
+"# Harness: Synthetic Profile & Execution Contracts
 
 ## Purpose
 This file documents the test harness, data schemas, and runtime contracts used by the agent automation pipeline. It serves as the reproducible ground truth for testing against the mock scholarship portal without using real citizen data (zero-PII compliance).
@@ -197,3 +197,23 @@ Execute the complete test suite:
 python -m unittest discover tests
 ```
 Runs all 31 unit tests across all project milestones (100% pass rate).
+
+---
+
+## 10. Step 6: Secret Substitution Layer & PII Log-Scan Harness (`agent/tools/secrets.py`)
+
+### Architecture & Zero-PII Compliance (Feature F1)
+The Secret Substitution Layer ensures no real citizen personal data (name, DOB, ID, income, address) is ever exposed in outbound LLM prompts or API logs:
+- **`SecretVault`**:
+  - Automatically identifies sensitive fields vs. non-sensitive fields from citizen profiles.
+  - Generates deterministic placeholder tokens (e.g. `{{full_name}}`, `{{dob}}`, `{{annual_income}}`).
+  - **`mask_profile()`**: Produces sanitized profile copies where sensitive fields are replaced by tokens before being passed to LLM planners or mappers.
+  - **`substitute()`**: Restores real values strictly locally in the browser executor immediately before typing into the form.
+  - **`scan_for_leaks()` / `assert_no_leaks()`**: Scans outbound LLM prompts and log entries, raising `PIILeakDetectedError` if any raw sensitive value appears.
+
+### Unit Tests & Log-Scan Verification
+Execute the Step 6 PII protection suite:
+```powershell
+python -m unittest tests/unit/test_secrets_and_pii.py
+```
+Validates placeholder registration, two-way redaction/substitution, profile masking, leak detection, and proves **0 PII leaks** across all outbound prompts.
