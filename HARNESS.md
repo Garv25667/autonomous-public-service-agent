@@ -239,3 +239,26 @@ Execute the Step 7 test suite:
 python -m unittest tests/unit/test_receipt_and_approval.py
 ```
 Validates receipt regex enforcement, DOM extraction without LLM, JSON serialization, review table generation, dry-run mode, and proves the approval gate cannot be bypassed.
+
+---
+
+## 12. Step 8: Eligibility Pre-Check, Document Readiness & Human Handoff
+
+### Architecture & Components
+- **Eligibility Pre-Check (`rules/scholarship.yaml`, `agent/eligibility.py`)**:
+  - Pure Python deterministic evaluation of income ceilings, minimum academic marks, age limits, approved courses, and required documents.
+  - Zero LLM rule invention: rules are sourced strictly from YAML guidelines.
+- **Document Readiness (`agent/tools/docs.py`)**:
+  - Pre-validates documents against portal specifications (PDF/image, size < 2 MB, page count) before launching the browser.
+  - Uses `pypdf` to extract text and cross-check against profile names and marks.
+- **Human-in-the-Loop Handoff (`agent/handoff.py`)**:
+  - Automatically identifies CAPTCHA and OTP challenges on `/human-check` (`?gate=1`).
+  - Sets `RunState.status = "needs_human"` and saves an SQLite checkpoint.
+  - Resumes execution seamlessly once human verification values are supplied.
+
+### Unit Tests
+Execute the Step 8 test suite:
+```powershell
+python -m unittest tests/unit/test_step8_eligibility_docs_handoff.py
+```
+Validates YAML rule evaluation, document constraints, and CAPTCHA/OTP detection and pause handling.
