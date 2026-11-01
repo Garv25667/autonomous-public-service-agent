@@ -217,3 +217,25 @@ Execute the Step 6 PII protection suite:
 python -m unittest tests/unit/test_secrets_and_pii.py
 ```
 Validates placeholder registration, two-way redaction/substitution, profile masking, leak detection, and proves **0 PII leaks** across all outbound prompts.
+
+---
+
+## 11. Step 7: Receipt Extraction & Final Approval Gate (`agent/receipt.py`, `agent/approval.py`)
+
+### Architecture & Rules (Feature F6)
+- **`ReceiptExtractor`**:
+  - Deterministic regex extraction from DOM (`\b(SCH-[A-F0-9]{8})\b`).
+  - **Zero LLM Rule**: The LLM is strictly prohibited from writing or guessing the receipt reference ID.
+  - Rejects malformed or fabricated receipts (`InvalidReceiptError`).
+  - Serializes verified receipt records to `data/receipt.json`.
+- **`ApprovalGate` & `ReviewSummaryTable`**:
+  - Pre-submission summary: Renders an aligned table displaying every field, value submitted, source, and confidence score.
+  - **Bypass Prevention**: Without explicit user approval (`explicit_approval=True`), the gate halts with `awaiting_approval` and transitions state to `needs_human`.
+  - **Dry-Run Mode**: When `dry_run=True`, the gate stops before the final submission click and reports `dry_run_halted`.
+
+### Unit Tests
+Execute the Step 7 test suite:
+```powershell
+python -m unittest tests/unit/test_receipt_and_approval.py
+```
+Validates receipt regex enforcement, DOM extraction without LLM, JSON serialization, review table generation, dry-run mode, and proves the approval gate cannot be bypassed.
