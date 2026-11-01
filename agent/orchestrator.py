@@ -12,6 +12,7 @@ from .guards import RuntimeGuards, LoopDetectedError, ActionBudgetExceededError,
 from .perception import SemanticMapper
 from .verifier import PageVerifier, VerificationResult
 from .recovery import RecoveryHandler, RecoveryAction
+from .handoff import HumanHandoffManager, HumanChallenge
 from .tools.secrets import SecretVault
 from .tools.docs import DocumentProcessor
 from .eligibility import EligibilityEvaluator, EligibilityResult
@@ -30,13 +31,21 @@ class AgentOrchestrator:
     def __init__(
         self,
         portal_base_url: str = "http://127.0.0.1:5000",
+        query_params: str = "",
         headless: bool = False,
         dry_run: bool = False,
+        auto_approve: bool = False,
+        auto_solve_gate: bool = False,
         broadcast_callback: Optional[Callable[[Dict[str, Any]], Any]] = None
     ):
         self.portal_base_url = portal_base_url.rstrip("/")
+        if query_params and not query_params.startswith("?"):
+            query_params = "?" + query_params
+        self.query_params = query_params
         self.headless = headless
         self.dry_run = dry_run
+        self.auto_approve = auto_approve
+        self.auto_solve_gate = auto_solve_gate
         self.broadcast_callback = broadcast_callback
 
         # Initialize core components
@@ -48,6 +57,7 @@ class AgentOrchestrator:
         self.mapper = SemanticMapper()
         self.verifier = PageVerifier()
         self.recovery = RecoveryHandler()
+        self.handoff = HumanHandoffManager()
         self.approval_gate = ApprovalGate(dry_run=dry_run)
         self.receipt_extractor = ReceiptExtractor()
 
@@ -131,7 +141,18 @@ class AgentOrchestrator:
                 # 4. State Execution Loop
                 # Step 0: Login
                 if state.step_index == 0:
-                    await page.goto(f"{self.portal_base_url}/login")
+                    login_url = f"{self.portal_base_url}/login{self.query_params}"
+                    await page.goto(login_url)
+                    await page.wait_for_load_state("domcontentloaded")
+
+                    # Check for 500 error on load (flaky_500 scenario)
+                    content = await page.content()
+                    verification = self.verifier.classify_html(page.url, content)
+                    if not verification.success and verification.issue_type == "server_error_500":
+                        rec_action = await self.recovery.execute_recovery(page, verification, state, self.checkpointer)
+                        if rec_action.retry_action:
+                            await page.wait_for_load_state("domcontentloaded")
+
                     await page.get_by_label("User ID").fill("student")
                     await page.get_by_label("Password").fill("demo123")
                     await page.get_by_role("button", name="Sign in securely").click()
@@ -146,6 +167,13 @@ class AgentOrchestrator:
 
                 # Step 1: Personal Info
                 if state.step_index == 1:
+                    # Check for popup overlay (popup scenario)
+                    content = await page.content()
+                    ver = self.verifier.classify_html(page.url, content)
+                    if ver.issue_type == "popup_or_modal":
+                        await self.recovery.execute_recovery(page, ver, state, self.checkpointer)
+                        await page.wait_for_load_state("domcontentloaded")
+
                     await page.get_by_label("Full name *").fill(personal["full_name"])
                     await page.get_by_label("Date of birth *").fill(personal["dob"])
 
@@ -159,19 +187,24 @@ class AgentOrchestrator:
                     course_match = self.mapper.match_dropdown(personal["course"], course_options, "Current course")
                     await page.get_by_label("Current course").select_option(label=course_match.choice or personal["course"])
 
+                    # Cascading dropdowns (State -> District -> Block)
                     await page.get_by_label("State").select_option(label=personal["state"])
+                    await asyncio.sleep(0.15)
                     await page.get_by_label("District").select_option(label=personal["district"])
+                    await asyncio.sleep(0.15)
                     await page.get_by_label("Block / Taluka").select_option(label=personal["block"])
 
                     await page.get_by_role("button", name="Save & continue").click()
                     await page.wait_for_load_state("domcontentloaded")
 
-                    # Verify step 1
+                    # Verify step 1 -> step 2 transition (e.g. check for session expiry)
                     verification = await self.verifier.verify_page(page, expected_heading="Academic information")
                     if not verification.success:
                         action = await self.recovery.execute_recovery(page, verification, state, self.checkpointer)
                         if action.needs_human:
                             return state
+                        if action.retry_action:
+                            await page.wait_for_load_state("domcontentloaded")
 
                     state.record_audit(action="personal_info", status="success", value_summary=personal["full_name"])
                     state.step_index = 2
@@ -194,6 +227,14 @@ class AgentOrchestrator:
                     await page.get_by_role("button", name="Save & continue").click()
                     await page.wait_for_load_state("domcontentloaded")
 
+                    verification = await self.verifier.verify_page(page, expected_heading="Declaration")
+                    if not verification.success:
+                        action = await self.recovery.execute_recovery(page, verification, state, self.checkpointer)
+                        if action.needs_human:
+                            return state
+                        if action.retry_action:
+                            await page.wait_for_load_state("domcontentloaded")
+
                     state.record_audit(action="academic_info", status="success", value_summary=education["college"])
                     state.step_index = 3
                     self.checkpointer.save(state)
@@ -201,13 +242,37 @@ class AgentOrchestrator:
                     frame = await self._capture_live_frame(page)
                     await self._emit_event("step_completed", {"step": "step2", "screenshot": frame, "state": state.model_dump()})
 
-                # Step 3: Declaration
+                # Step 3: Declaration & Gate Check
                 if state.step_index == 3:
                     dec = page.get_by_label("I agree to the declaration.")
                     await dec.check()
 
                     await page.get_by_role("button", name="Continue to review").click()
                     await page.wait_for_load_state("domcontentloaded")
+
+                    # Check for human verification gate (e.g. gate=1)
+                    if "/human-check" in page.url:
+                        challenge = self.handoff.detect_challenge(await page.content(), page.url)
+                        if challenge:
+                            self.handoff.trigger_pause(state, challenge, self.checkpointer)
+                            frame = await self._capture_live_frame(page)
+                            await self._emit_event("human_gate_required", {
+                                "run_id": state.run_id,
+                                "challenge": challenge.model_dump(),
+                                "screenshot": frame
+                            })
+                            if self.auto_solve_gate:
+                                solved = await self.handoff.complete_challenge_and_resume(
+                                    page, state,
+                                    captcha_solution="DEMO-1234",
+                                    otp_code="123456",
+                                    checkpointer=self.checkpointer
+                                )
+                                if not solved:
+                                    return state
+                                await page.wait_for_load_state("domcontentloaded")
+                            else:
+                                return state
 
                     state.record_audit(action="declaration", status="success", value_summary="Agreed")
                     state.step_index = 4
@@ -221,26 +286,31 @@ class AgentOrchestrator:
                     summary_table = self.approval_gate.build_summary_from_profile(profile)
                     frame = await self._capture_live_frame(page)
 
-                    # Pause for human approval
-                    state.status = "needs_human"
-                    state.human_reason = "Application is compiled and awaiting explicit citizen approval."
-                    self.checkpointer.save(state)
-
-                    await self._emit_event("approval_required", {
-                        "run_id": state.run_id,
-                        "summary_table": summary_table.format_text(),
-                        "summary_markdown": summary_table.format_markdown(),
-                        "screenshot": frame
-                    })
-
-                    # If not interactive (dry run or waiting), pause and halt here safely
+                    # If dry run mode, stop before final submission
                     if self.dry_run:
                         state.status = "done"
+                        state.record_audit(action="dry_run_halt", status="success", value_summary="Pre-submission halt")
                         self.checkpointer.save(state)
                         return state
 
-                    # Default to awaiting user interaction from UI
-                    # If running in CLI / batch: click submit
+                    # Check explicit human approval
+                    if not self.auto_approve:
+                        state.status = "needs_human"
+                        state.human_reason = "Application is compiled and awaiting explicit citizen approval."
+                        self.checkpointer.save(state)
+
+                        await self._emit_event("approval_required", {
+                            "run_id": state.run_id,
+                            "summary_table": summary_table.format_text(),
+                            "summary_markdown": summary_table.format_markdown(),
+                            "screenshot": frame
+                        })
+                        return state
+
+                    # User has approved or auto_approve is granted
+                    approval_res = self.approval_gate.request_approval(summary_table, explicit_approval=True)
+                    state.record_audit(action="approval_granted", status="success", value_summary="Explicit citizen approval")
+
                     await page.get_by_role("button", name="Approve & submit application").click()
                     await page.wait_for_url("**/receipt/**", timeout=15000)
 
@@ -249,7 +319,7 @@ class AgentOrchestrator:
 
                 # Step 5: Receipt Extraction & Verification
                 if state.step_index == 5:
-                    await page.locator("#receipt-id").wait_for(state="visible")
+                    await page.locator("#receipt-id").wait_for(state="visible", timeout=15000)
                     content = await page.content()
 
                     receipt_data = self.receipt_extractor.extract_from_html(

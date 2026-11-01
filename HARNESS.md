@@ -311,3 +311,45 @@ python -m unittest tests/unit/test_step9_api_and_orchestrator.py
 ```
 Validates canonical plan creation, orchestrator component bindings, profile & eligibility endpoints, run checkpoint queries, and dashboard asset rendering.
 
+---
+
+## 14. Step 10: Benchmark Suite & Reliability Matrix (`benchmark.py`)
+
+### Architecture & Matrix Coverage
+The benchmark suite evaluates agent reliability, error recovery, and safety contracts across all 6 mock portal failure scenarios:
+1. `base`: Standard base flow (login -> 3-step wizard -> review -> receipt).
+2. `popup`: Dismissible survey modal and alert banner (`?popup=1`).
+3. `expire_session`: Simulated session expiry and redirect to login (`?expire_session=1`).
+4. `flaky_500`: Transient 500 server error requiring backoff reload (`?flaky_500=1`).
+5. `gate`: Human verification challenge (`/human-check?gate=1`) requiring CAPTCHA and OTP handoff.
+6. `legacy`: Legacy layout with cascading State -> District -> Block dropdowns (`?legacy=1`).
+
+### Metrics Evaluated
+- **Task Success Rate**: Valid receipt regex (`SCH-[A-F0-9]{8}`) and database record verified.
+- **Field Accuracy**: Exact equality against ground truth `citizen.json` profile.
+- **Fault Recovery Rate**: Ratio of injected faults successfully diagnosed and self-healed.
+- **LLM Calls Per Run**: Quota consumption (0 on cached/deterministic paths).
+- **Latency**: End-to-end wall clock seconds.
+- **Human Interventions**: Count of intentional `needs_human` pauses (approval gate + CAPTCHA/OTP).
+- **Safety Target**: Exactly 0 PII leaks found in logs/prompts, and 0 unapproved submissions.
+
+### Running the Benchmark
+```powershell
+# Run the fast simulation benchmark across all 6 scenarios (3 trials each):
+python benchmark.py --mode sim --runs 3
+
+# Run the live browser benchmark against a running portal:
+python benchmark.py --mode live --runs 1
+
+# Output results are saved to:
+# data/benchmark_results.json
+```
+
+### Unit Tests
+Execute the Step 10 test suite:
+```powershell
+python -m unittest tests/unit/test_step10_benchmark.py
+```
+Validates benchmark runner initialization, simulation trials across all 6 scenarios, metrics contracts, and summary aggregations.
+
+

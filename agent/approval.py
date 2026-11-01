@@ -147,3 +147,13 @@ class ApprovalGate:
             status="approved",
             reason="User explicitly approved the application for final submission."
         )
+
+    def request_approval(
+        self,
+        summary: ReviewSummaryTable,
+        explicit_approval: Optional[bool] = None,
+        state: Optional[RunState] = None
+    ) -> ApprovalResult:
+        """Convenience alias for evaluate_gate."""
+        return self.evaluate_gate(summary, explicit_approval=explicit_approval, state=state)
+

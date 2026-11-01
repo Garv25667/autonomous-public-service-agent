@@ -30,10 +30,11 @@ def simulate_portal_conditions():
         # Deterministic demo failure; append ?fail_once=0 to continue after observing it.
         return render_template("error.html", message="Temporary server error (demo scenario).",
                                hint="Reload with fail_once=0 to continue the demo."), 500
-    if session.get("logged_in") and request.args.get("expire_session") == "1":
+    if session.get("logged_in") and request.args.get("expire_session") == "1" and request.args.get("expired") != "1":
         session.clear()
         if request.endpoint not in ("login",):
-            return redirect(url_for("login", **flags()))
+            remaining_flags = {k: "1" for k, v in flags().items() if v and k != "expire_session"}
+            return redirect(url_for("login", expired="1", **remaining_flags))
 
 @app.route("/", methods=["GET"])
 def index():
