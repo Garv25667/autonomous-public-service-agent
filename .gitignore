@@ -33,3 +33,6 @@ uploads/
 # Reference docs
 Public Service Agent*.pdf
 
+# Scratch / temp
+scratch/
+

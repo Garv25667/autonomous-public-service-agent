@@ -155,25 +155,61 @@
     .dot.active { background: var(--primary); width: 24px; border-radius: 10px; }
 
     @media print {
-      body { overflow: visible; background: #fff; color: #000; }
-      header, .slide-footer button { display: none; }
-      .deck-container { display: block; padding: 0; }
+      @page {
+        size: landscape;
+        margin: 0;
+      }
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      body {
+        overflow: visible !important;
+        background: #0f172a !important;
+        color: #f8fafc !important;
+        -webkit-print-color-adjust: exact !important;
+      }
+      header, .slide-footer button, .dots { display: none !important; }
+      .deck-container {
+        display: block !important;
+        padding: 0 !important;
+      }
       .slide {
-        position: relative;
+        position: relative !important;
         opacity: 1 !important;
         transform: none !important;
-        max-height: none;
-        height: auto;
-        page-break-after: always;
-        border: 1px solid #ccc;
-        background: #fff;
-        color: #000;
-        margin-bottom: 40px;
-        box-shadow: none;
+        max-height: none !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: none !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: #0f172a !important;
+        color: #f8fafc !important;
+        padding: 44px 60px !important;
+        box-shadow: none !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
       }
-      .slide-title, .card-title { color: #000; }
-      .card { background: #f8fafc; border: 1px solid #ddd; }
-      .card-desc, .slide-subtitle { color: #475569; }
+      .slide-title { color: #ffffff !important; }
+      .slide-tag { color: #38bdf8 !important; }
+      .slide-subtitle { color: #94a3b8 !important; }
+      .card {
+        background: #1e293b !important;
+        border: 1px solid #334155 !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+      }
+      .card-title { color: #ffffff !important; }
+      .card-desc { color: #94a3b8 !important; }
+      .slide-footer {
+        border-top: 1px solid #334155 !important;
+        color: #94a3b8 !important;
+      }
     }
   </style>
 </head>
@@ -309,7 +345,7 @@
           <div class="card-icon">🛡️</div>
           <div class="card-title">Zero-PII Perception & Privacy Layer</div>
           <div class="card-desc">
-            • <strong>Local Secret Vault:</strong> Tokens like <code>{{CITIZEN_AADHAAR_TOKEN}}</code> replace real numbers before calling Gemini API.<br>
+            • <strong>Local Secret Vault:</strong> Tokens like <code>&#123;&#123;CITIZEN_AADHAAR_TOKEN&#125;&#125;</code> replace real numbers before calling Gemini API.<br>
             • <strong>Local OCR & Parser:</strong> PyMuPDF / Tesseract running offline to ingest marksheets and DL scans without cloud leaks.<br>
             • <strong>Statutory Rule Engine:</strong> Deterministic YAML rule evaluation (Motor Vehicles Act Form 1A age thresholds, CSS income caps).
           </div>

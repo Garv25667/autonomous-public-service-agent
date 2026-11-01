@@ -784,17 +784,17 @@
       if (serviceName === "scholarship") {
         if (chipDl) chipDl.className = "service-chip";
         if (chipSch) chipSch.className = "service-chip active";
-        if (frame) frame.src = "/scholarship-form";
+        if (frame) frame.src = "./scholarship-form.html";
         if (title) title.innerText = "National Merit Scholarship Application Portal (Intake Form)";
-        activeTargetUrl = window.location.origin + "/scholarship-form";
+        activeTargetUrl = "./scholarship-form.html";
         addUserMessage("Switched to National Merit Scholarship Application");
         addAssistantMessage("🎓 **National Merit Scholarship Form loaded on the right!** Click **⚡ Autofill Now** to watch the autonomous agent populate all academic details in real time.");
       } else {
         if (chipDl) chipDl.className = "service-chip active";
         if (chipSch) chipSch.className = "service-chip";
-        if (frame) frame.src = "/parivahan-form";
+        if (frame) frame.src = "./parivahan-form.html";
         if (title) title.innerText = "MoRTH Parivahan Sarathi — Driving License Renewal (Form 9)";
-        activeTargetUrl = window.location.origin + "/parivahan-form";
+        activeTargetUrl = "./parivahan-form.html";
         addUserMessage("Switched to MoRTH Parivahan Driving License Renewal");
         addAssistantMessage("🚗 **MoRTH Parivahan DL Renewal Form loaded on the right!** Click **⚡ Autofill Now** to watch the autonomous agent populate your license number, DOB, and verify Form 1A statutory exemption in real time.");
       }
@@ -874,14 +874,68 @@
     function resetActivePortal() {
       const frame = document.getElementById("portal-frame");
       if (frame) {
-        frame.src = currentService === 'parivahan' ? './parivahan-form.html' : './scholarship-form.html';
+        // Method 1: HTML5 postMessage (works across all origins and file:///)
+        try {
+          if (frame.contentWindow) {
+            frame.contentWindow.postMessage("RESET_FORM", "*");
+          }
+        } catch(e) {}
+
+        // Method 2: Direct call if accessible
+        try {
+          if (frame.contentWindow && typeof frame.contentWindow.resetPortalForm === 'function') {
+            frame.contentWindow.resetPortalForm();
+          }
+        } catch(e) {}
+
+        // Method 3: Direct form reset in iframe document
+        try {
+          const doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+          if (doc) {
+            const form = doc.querySelector("form");
+            if (form) form.reset();
+            doc.querySelectorAll("input, select, textarea").forEach(el => {
+              el.value = "";
+              el.style.outline = "";
+              el.style.background = "";
+            });
+            const rBox = doc.getElementById("receipt-box");
+            if (rBox) rBox.style.display = "none";
+            const toast = doc.getElementById("toast");
+            if (toast) toast.style.display = "none";
+            const bar = doc.getElementById("autofill-status-bar");
+            if (bar) {
+              bar.innerHTML = "⚡ <strong>Live Portal Form Ready:</strong> Standing by for autonomous autofill.";
+              bar.style.background = "";
+              bar.style.color = "";
+              bar.style.borderColor = "";
+            }
+          }
+        } catch(e) {}
+
+        // Method 4: Force reload iframe
+        try {
+          const targetUrl = currentService === 'parivahan' ? './parivahan-form.html' : './scholarship-form.html';
+          frame.src = targetUrl + (window.location.protocol === 'file:' ? '' : '?r=' + Date.now());
+        } catch(e) {}
       }
+
+      // Reset status badge
       const badge = document.getElementById("viewport-status-badge");
       if (badge) {
         badge.innerText = "● Ready to Autofill";
         badge.style.background = "#e6f4ea";
         badge.style.color = "#1e8e3e";
       }
+
+      // Reset status indicator
+      updateStatus("IDLE", "idle");
+
+      // Remove receipt cards and step pills
+      document.querySelectorAll('.receipt-card').forEach(el => el.remove());
+      document.querySelectorAll('.step-pill').forEach(el => el.remove());
+
+      addAssistantMessage("🔄 **Portal & Form have been fully reset to blank!** Ready to autofill again.");
     }
 
     function popoutPortal() {

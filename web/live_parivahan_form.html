@@ -119,7 +119,7 @@
       <button type="button" onclick="runParivahanAutofill()" style="background: #004085; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; font-weight: 600; cursor: pointer;">▶️ Autofill Now</button>
     </div>
 
-    <form id="parivahan-form" onsubmit="event.preventDefault(); submitParivahanForm();">
+    <form id="parivahan-form" autocomplete="off" onsubmit="event.preventDefault(); submitParivahanForm();">
       
       <!-- Section 1: Jurisdiction Selection -->
       <fieldset>
@@ -213,6 +213,40 @@
 </div>
 
 <script>
+  
+  window.addEventListener("message", function(e) {
+    if (e.data === "RESET_FORM" || (e.data && e.data.action === "RESET_FORM")) {
+      resetPortalForm();
+    }
+  });
+
+  function resetPortalForm() {
+    const form = document.querySelector("form");
+    if (form) form.reset();
+
+    const receiptBox = document.getElementById("receipt-box");
+    if (receiptBox) receiptBox.style.display = "none";
+
+    document.querySelectorAll("input, select").forEach(el => {
+      el.value = "";
+      el.style.outline = "";
+      el.style.background = "";
+    });
+
+    const bar = document.getElementById("autofill-status-bar");
+    if (bar) {
+      bar.innerHTML = "⚡ <strong>Live Portal Form Ready:</strong> Standing by for autonomous autofill.";
+      bar.style.background = "var(--morth-light)";
+      bar.style.borderColor = "#c2e7ff";
+      bar.style.color = "#1a73e8";
+    }
+
+    const btn = document.getElementById("submit-parivahan-btn");
+    if (btn) btn.style.boxShadow = "";
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   function submitParivahanForm() {
     const receiptBox = document.getElementById("receipt-box");
     const nameVal = document.getElementById("name-input").value || "Garv Sharma";

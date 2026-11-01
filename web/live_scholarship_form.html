@@ -56,7 +56,7 @@
     <button type="button" onclick="runAutofill()" style="background: #1a73e8; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; font-weight: 600; cursor: pointer;">▶️ Autofill Now</button>
   </div>
 
-  <form id="scholarship-form" onsubmit="event.preventDefault(); document.getElementById('toast').style.display='block'; window.scrollTo({top:0, behavior:'smooth'});">
+  <form id="scholarship-form" autocomplete="off" onsubmit="event.preventDefault(); document.getElementById('toast').style.display='block'; window.scrollTo({top:0, behavior:'smooth'});">
     
     <!-- Section 1 -->
     <fieldset>
@@ -149,6 +149,51 @@
 </div>
 
 <script>
+  
+  window.addEventListener("message", function(e) {
+    if (e.data === "RESET_FORM" || (e.data && e.data.action === "RESET_FORM")) {
+      resetPortalForm();
+    }
+  });
+
+  function resetPortalForm() {
+    const form = document.getElementById("scholarship-form");
+    if (form) form.reset();
+
+    const toast = document.getElementById("toast");
+    if (toast) toast.style.display = "none";
+
+    document.querySelectorAll("input, select, textarea").forEach(el => {
+      el.value = "";
+      el.style.outline = "";
+      el.style.background = "";
+    });
+
+    const fileBox = document.querySelector(".file-box");
+    if (fileBox) {
+      fileBox.innerHTML = `
+        <div style="font-size: 28px; margin-bottom: 6px;">📄</div>
+        <div style="font-size: 13px; font-weight: 600; color: #3c4043;">Upload Class 12th / Previous Year Marksheet</div>
+        <div style="font-size: 11px; color: #5f6368; margin-top: 4px;">PDF format only, Maximum file size 200 KB</div>
+      `;
+      fileBox.style.border = "2px dashed var(--border)";
+      fileBox.style.background = "#fff";
+    }
+
+    const bar = document.getElementById("autofill-status-bar");
+    if (bar) {
+      bar.innerHTML = "<span>⚡ <strong>Live Portal Form Ready:</strong> Standing by for autonomous autofill.</span><button type='button' onclick='runAutofill()' style='background: #1a73e8; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; font-weight: 600; cursor: pointer;'>▶️ Autofill Now</button>";
+      bar.style.background = "#e8f0fe";
+      bar.style.borderColor = "#c2e7ff";
+      bar.style.color = "#1a73e8";
+    }
+
+    const btn = document.getElementById("submit-btn");
+    if (btn) btn.style.boxShadow = "";
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   async function runAutofill() {
     const bar = document.getElementById("autofill-status-bar");
     if (bar) bar.innerHTML = "🤖 <strong>Autonomous Agent Active:</strong> Reading citizen profile and populating fields in slow-mo...";
