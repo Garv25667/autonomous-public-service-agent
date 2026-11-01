@@ -41,29 +41,29 @@ Core Capabilities & Agentic Architecture:
 
 ### 4. Live prototype link *
 ```text
-http://127.0.0.1:8001/
+https://garv25667.github.io/autonomous-public-service-agent/
 ```
-*(Public Tunnel / Deployed Prototype URL: `https://puny-ends-allow.loca.lt`)*
+*(Alternative Live Tunnel to Local Machine: `https://witty-rocks-peel.loca.lt` — Tunnel password if prompted: `45.124.188.210`)*
 
 ---
 
-### 5. Public GitHub *
+### 5. Demo video link *
+*(Paste your YouTube or Google Drive video link after recording following the 5-minute script below)*
+
+---
+
+### 6. Public GitHub *
 ```text
 https://github.com/Garv25667/autonomous-public-service-agent
 ```
 
 ---
 
-### 6. Presentation / pitch deck link *
+### 7. Presentation / pitch deck link *
 ```text
-http://127.0.0.1:8001/presentation
+https://garv25667.github.io/autonomous-public-service-agent/presentation.html
 ```
-*(You can also export this 7-slide deck to PDF directly via the 🖨️ Export PDF button on the page)*
-
----
-
-### 7. Demo video link *
-*(Paste your YouTube or Google Drive video link after recording following the 5-minute script below)*
+*(Alternative Live Tunnel: `https://witty-rocks-peel.loca.lt/presentation` — You can also export this 7-slide deck to PDF directly via the 🖨️ Export PDF button on the page)*
 
 ---
 
@@ -73,20 +73,20 @@ Use this exact structure to record a smooth, high-scoring demo video:
 
 | Timestamp | Section | What to Show on Screen | What to Say (Script) |
 |---|---|---|---|
-| **0:00 – 0:45** | **Problem Intro & Hook** | Slide 1 & 2 of `http://127.0.0.1:8001/presentation` | *"Hello judges! Every year, millions of citizens in India struggle with complex government portals like Parivahan and NSP, forcing them to share private Aadhaar and documents with cyber cafés. Today, we present JanSeva AI — an autonomous, Zero-PII web co-pilot that executes public service forms directly on your screen."* |
-| **0:45 – 1:30** | **App & Zero-PII Vault** | Open `http://127.0.0.1:8001/` and expand **Profile** | *"Here is the clean Claude-style interface. Notice the citizen profile vault. When a user uploads a marksheet or ID, entities like Aadhaar and Driving License are tokenized locally. Real PII is never shared with third-party LLMs."* |
-| **1:30 – 3:00** | **Live Autonomous Flow (Parivahan DL Demo)** | Click **🚗 Demo: Parivahan DL Form** -> Click **▶️ Launch Browser Co-Pilot** | *"Watch this: I click DL Renewal Demo and Launch Co-Pilot. A headed Chromium browser window opens in slow-motion. The agent scans the DOM, detects the DL Number, Date of Birth, checks the Motor Vehicles Act statutory exemption, and populates the form. Notice it pauses in Silent Mode for the visual CAPTCHA. I enter the code, click Resume, and it instantly submits and generates an official acknowledgment receipt!"* |
-| **3:00 – 4:00** | **Scholarship Intake (NSP Demo)** | Click **🎓 Demo: Scholarship Form** -> Click **▶️ Launch Co-Pilot** | *"Next, we test the National Scholarship Portal intake. The agent evaluates the Central Sector Scheme rules, populates 9 academic fields, attaches the marksheet PDF, and generates a verified receipt."* |
+| **0:00 – 0:45** | **Problem Intro & Hook** | Slide 1 & 2 of Pitch Deck (`/presentation.html`) | *"Hello judges! Every year, millions of citizens in India struggle with complex government portals like Parivahan and NSP, forcing them to share private Aadhaar and documents with cyber cafés. Today, we present JanSeva AI — an autonomous, Zero-PII web co-pilot that executes public service forms directly on your screen."* |
+| **0:45 – 1:30** | **App & Zero-PII Vault** | Open the Live Prototype and expand **Profile** | *"Here is the split-screen interface. On the left is the AI Co-Pilot; on the right is the actual government portal viewport. Notice the citizen profile vault: sensitive numbers like Aadhaar and Driving License are kept confidential and tokenized locally. Real PII is never shared with third-party LLMs."* |
+| **1:30 – 3:00** | **Live Autonomous Flow (Parivahan DL Renewal)** | Click **⚡ Autofill Form in Real Time (Watch Live)** | *"Watch this: I click 'Autofill Form in Real Time'. The autonomous agent immediately reads the citizen vault, verifies the Motor Vehicles Act statutory Form 1A age exemption, selects Rajasthan RTO RJ01, and types the citizen's license credentials directly into the form fields with live glowing indicators. It enters the verification code, submits the form, and instantly displays the official government acknowledgment receipt with reference ID DL-RJ01-2026-904821!"* |
+| **3:00 – 4:00** | **Scholarship Intake (NSP Demo)** | Switch service to **🎓 Scholarship** -> Click **⚡ Autofill Now** | *"Next, we switch to the National Merit Scholarship Portal. The agent evaluates the Central Sector Scheme merit criteria (above 80th percentile), verifies academic credentials (82.5% B.Tech record), populates the multi-section applicant intake form, and submits the application, generating a verified receipt."* |
 | **4:00 – 5:00** | **Architecture & Impact** | Slide 4 & 7 of Pitch Deck | *"JanSeva AI is built with Google Gemini, Playwright, and a local Zero-PII security vault, validated across 107 passing unit tests. Our roadmap includes DigiLocker integration and Bhashini multilingual voice support for 22 Indian regional languages. Thank you!"* |
 
 ---
 
-## 📊 7-Slide Pitch Deck Overview (`/presentation`)
-
-- **Slide 1:** Title: *JanSeva AI — Autonomous Zero-PII Public Service Execution Agent*
-- **Slide 2:** Problem: *The Crushing Friction of Digital Bureaucracy in India*
-- **Slide 3:** Proposed Solution: *JanSeva AI Citizen Co-Pilot*
-- **Slide 4:** Technical Architecture: *Dual-Loop LLM + Playwright Desktop Actuator*
-- **Slide 5:** Safety & Guardrails: *Zero-PII Redaction, Zero-Hallucination Policy, Silent Mode*
-- **Slide 6:** Live Demonstration & Test Results: *107 Passing Tests, MoRTH & NSP Workflows*
-- **Slide 7:** Future Roadmap: *Bhashini Voice in 22 Languages, DigiLocker, Rural CSC Kiosks*
+## ⚙️ How to Activate GitHub Pages (1-Click Setup)
+If GitHub Pages is not yet enabled on your repo:
+1. Go to your repository settings: **https://github.com/Garv25667/autonomous-public-service-agent/settings/pages**
+2. Under **Build and deployment**:
+   - **Source**: `Deploy from a branch`
+   - **Branch**: `main`
+   - **Folder**: `/docs`
+3. Click **Save**.
+Within ~30 seconds, GitHub automatically hosts the live prototype at `https://garv25667.github.io/autonomous-public-service-agent/`!
