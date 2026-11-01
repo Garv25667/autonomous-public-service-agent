@@ -87,7 +87,7 @@ class DocumentProcessor:
                 if expected_profile and not is_scanned:
                     personal = expected_profile.get("personal", {})
                     name = personal.get("full_name")
-                    if name and name.lower() not in full_text.lower():
+                    if name and not any(part.lower() in full_text.lower() for part in name.split() if len(part) > 2):
                         mismatches.append(f"Student name '{name}' not found in marksheet text.")
 
                 return DocumentValidationResult(

@@ -11,6 +11,9 @@ DEFAULT_SENSITIVE_FIELDS: Set[str] = {
     "date_of_birth",
     "annual_income",
     "income",
+    "dl_number",
+    "driving_licence",
+    "license_number",
     "aadhaar",
     "aadhaar_number",
     "national_id",
@@ -75,6 +78,7 @@ class SecretVault:
     def redact(self, text: str) -> str:
         """
         Substitutes any occurrence of registered sensitive values in text with their placeholder tokens.
+        Also automatically scrubs standalone DL, Aadhaar, and phone patterns.
         Safe to send to external LLMs.
         """
         if not text:
@@ -85,6 +89,21 @@ class SecretVault:
         for real_val, placeholder in sorted(self._reverse_map.items(), key=lambda x: len(x[0]), reverse=True):
             if real_val and real_val in redacted:
                 redacted = redacted.replace(real_val, placeholder)
+
+        # Pattern-based scrubbing: DL Numbers
+        dl_pattern = r'\b([A-Z]{2}[-\s]?[0-9]{2}[-\s]?[0-9]{4}[-\s]?[0-9]{7}|[A-Z]{2}[0-9]{2}[0-9]{11}|[A-Z]{2}[-\s]?[0-9]{13,15})\b'
+        for match in re.findall(dl_pattern, redacted):
+            self.register_secret("dl_number", match)
+            redacted = redacted.replace(match, "{{dl_number}}")
+
+        # Pattern-based scrubbing: 12-digit Aadhaar
+        aadhaar_pattern = r'\b([0-9]{4}[-\s]?[0-9]{4}[-\s]?[0-9]{4})\b'
+        for match in re.findall(aadhaar_pattern, redacted):
+            clean = re.sub(r'[-\s]', '', match)
+            if len(clean) == 12:
+                self.register_secret("aadhaar", match)
+                redacted = redacted.replace(match, "{{aadhaar}}")
+
         return redacted
 
     def substitute(self, text: str) -> str:

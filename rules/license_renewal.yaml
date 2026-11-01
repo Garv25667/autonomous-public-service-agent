@@ -1,0 +1,55 @@
+# Driving License (DL) Renewal Eligibility & Document Policy
+# Official Source: Ministry of Road Transport and Highways (MoRTH), Government of India
+# Portal: sarathi.parivahan.gov.in / Parivahan Sewa
+
+service_id: "license_renewal"
+service_name: "Driving License Renewal (Services on DL)"
+authority: "Ministry of Road Transport and Highways (MoRTH), Government of India"
+portal_url: "https://sarathi.parivahan.gov.in/sarathiservice/stateSelection.do"
+guidelines_source: "https://parivahan.gov.in/parivahan//en/content/driving-licence"
+
+rules:
+  # Minimum age for driving license holder
+  min_age_years: 18
+
+  # Grace period: Renewal can be applied up to 1 year before expiry or within 1 year after expiry without re-test
+  grace_period_days: 365
+
+  # Medical certificate (Form 1A) requirement: mandatory if age >= 40 years
+  medical_cert_age_threshold: 40
+
+  allowed_vehicle_categories:
+    - "MCWG"    # Motorcycle with Gear
+    - "MCWOG"   # Motorcycle without Gear
+    - "LMV"     # Light Motor Vehicle (Car)
+    - "TRANS"   # Transport Vehicle
+
+  supported_states:
+    - "Maharashtra"
+    - "Delhi"
+    - "Uttar Pradesh"
+    - "Karnataka"
+    - "Tamil Nadu"
+    - "Gujarat"
+    - "Rajasthan"
+    - "West Bengal"
+    - "Punjab"
+    - "Haryana"
+
+  # Parivahan document upload constraints (max 500 KB per document)
+  required_documents:
+    - name: "current_dl"
+      description: "Original/Expired Driving License copy"
+      allowed_formats: [".pdf", ".jpg", ".jpeg"]
+      max_size_kb: 500
+
+    - name: "address_proof"
+      description: "Present Address Proof (Aadhaar / Passport / Electricity bill)"
+      allowed_formats: [".pdf", ".jpg", ".jpeg"]
+      max_size_kb: 500
+
+    - name: "form_1a_medical"
+      description: "Medical Certificate in Form 1A signed by registered medical practitioner (if age >= 40)"
+      allowed_formats: [".pdf", ".jpg", ".jpeg"]
+      max_size_kb: 500
+      conditional: "age >= 40"

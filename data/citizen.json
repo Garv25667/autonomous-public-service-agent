@@ -1,13 +1,14 @@
-
 {
   "personal": {
-    "full_name": "Aarav Sharma",
+    "full_name": "Garv Sharma",
     "dob": "2005-04-05",
     "category": "General",
     "course": "B.Tech",
-    "state": "Maharashtra",
-    "district": "Pune",
-    "block": "Haveli"
+    "state": "Rajasthan",
+    "district": "Ajmer",
+    "block": "Ajmer",
+    "dl_number": "RJ0120250003300",
+    "aadhar_number": "910810360925"
   },
   "education": {
     "college": "Demo Institute of Technology",
@@ -15,5 +16,8 @@
     "marks": "82.5",
     "annual_income": "450000",
     "marksheet_path": "data/demo_marksheet.pdf"
+  },
+  "license": {
+    "dl_number": "RJ0120250003300"
   }
 }

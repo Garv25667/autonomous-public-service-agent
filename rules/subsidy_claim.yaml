@@ -1,0 +1,35 @@
+# Government Welfare Subsidy & Benefit Claim Policy
+# Official Source: Direct Benefit Transfer (DBT) Mission, Government of India
+# Applicable Schemes: PM-KISAN, National Food Security Act (NFSA / PDS), PAHAL (LPG Subsidy)
+
+service_id: "subsidy_claim"
+service_name: "Direct Benefit Transfer & Welfare Subsidy Claim"
+authority: "DBT Mission / Ministry of Agriculture & Consumer Affairs"
+guidelines_source: "https://dbtbharat.gov.in"
+
+rules:
+  # Annual family income limit for priority welfare subsidy
+  income_ceiling: 250000.0
+
+  # Age requirement
+  min_age_years: 18
+
+  # Mandatory identity prerequisites
+  aadhaar_seeded_bank_account: true
+  active_mobile_linked_aadhaar: true
+
+  required_documents:
+    - name: "aadhaar_card"
+      description: "Aadhaar Card with linked mobile number"
+      allowed_formats: [".pdf", ".jpg", ".jpeg"]
+      max_size_kb: 300
+
+    - name: "bank_passbook"
+      description: "Bank passbook front page showing Account No & IFSC"
+      allowed_formats: [".pdf", ".jpg", ".jpeg"]
+      max_size_kb: 300
+
+    - name: "ration_card"
+      description: "Family Ration Card / BPL Certificate"
+      allowed_formats: [".pdf", ".jpg", ".jpeg"]
+      max_size_kb: 300

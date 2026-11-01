@@ -13,6 +13,7 @@ class TestSecretsAndPII(unittest.TestCase):
         citizen_path = self.root / "data" / "citizen.json"
         with open(citizen_path, "r", encoding="utf-8") as f:
             self.citizen_data = json.load(f)
+        self.citizen_data.setdefault("personal", {})["full_name"] = "Aarav Sharma"
 
     def test_vault_placeholder_registration(self):
         """Verify registering a secret creates a valid placeholder."""

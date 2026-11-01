@@ -1,0 +1,55 @@
+# National Scholarship Portal (NSP) Eligibility & Document Policy
+# Official Source: Department of Higher Education, Ministry of Education, Government of India
+# Guidelines: scholarships.gov.in / Central Sector Scheme of Scholarship for College and University Students
+
+scheme_name: "Central Sector Scheme of Scholarship for College and University Students"
+portal_url: "https://scholarships.gov.in"
+authority: "Department of Higher Education (DoHE), Government of India"
+guidelines_source: "https://scholarships.gov.in/public/schemeGuidelines/DoHE_CSSS_Guidelines.pdf"
+
+rules:
+  # Real NSP income ceiling: Total family income from all sources must not exceed ₹4,50,000 per annum
+  income_ceiling: 450000.0
+
+  # Real NSP academic threshold: Candidates must score above the 80th percentile in relevant board (typically >= 75%)
+  min_marks_percentage: 75.0
+
+  # Age limit
+  max_age_years: 25
+
+  allowed_categories:
+    - "General"
+    - "OBC"
+    - "SC"
+    - "ST"
+    - "EWS"
+
+  allowed_courses:
+    - "B.Tech"
+    - "B.E."
+    - "MBBS"
+    - "B.Sc"
+    - "B.Com"
+    - "B.A."
+    - "BCA"
+    - "BBA"
+    - "Integrated M.Sc"
+    - "M.Tech"
+    - "MBA"
+
+  # Strict real NSP document constraints: All uploaded documents must be <= 200 KB
+  required_documents:
+    - name: "marksheet"
+      description: "Class 12th / Previous Exam Marksheet"
+      allowed_formats: [".pdf", ".jpg", ".jpeg"]
+      max_size_kb: 200
+
+    - name: "income_certificate"
+      description: "Valid Family Income Certificate from competent revenue authority"
+      allowed_formats: [".pdf", ".jpg", ".jpeg"]
+      max_size_kb: 200
+
+    - name: "bonafide_certificate"
+      description: "Student Bonafide Certificate issued by Head of Institution"
+      allowed_formats: [".pdf", ".jpg", ".jpeg"]
+      max_size_kb: 200

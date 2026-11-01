@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoRTH Parivahan Sarathi — DL Services & Renewal Portal</title>
+  <style>
+    :root {
+      --morth-blue: #004085;
+      --morth-gold: #ffc107;
+      --morth-light: #e8f0fe;
+      --border: #d0d7de;
+      --success: #1e8e3e;
+      --text: #202124;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #f0f2f5; color: var(--text); padding: 24px 16px; }
+    .portal-container { max-width: 860px; margin: 0 auto; background: #fff; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,0.08); overflow: hidden; }
+    
+    /* MoRTH Header */
+    .gov-header { background: #0b3861; color: #fff; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 4px solid #f2994a; }
+    .gov-title { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+    .gov-subtitle { font-size: 12px; color: #cbd5e1; margin-top: 3px; }
+    .emblem-box { font-size: 32px; }
+
+    /* Content Body */
+    .portal-body { padding: 28px; }
+    .page-title { font-size: 20px; font-weight: 700; color: var(--morth-blue); margin-bottom: 6px; }
+    .page-subtitle { font-size: 13px; color: #5f6368; margin-bottom: 20px; }
+
+    .status-bar { background: var(--morth-light); border: 1px solid #c2e7ff; color: #1a73e8; padding: 12px 16px; border-radius: 6px; margin-bottom: 22px; font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: space-between; }
+
+    fieldset { border: 1px solid var(--border); border-radius: 6px; padding: 20px; margin-bottom: 20px; background: #fafbfc; }
+    legend { font-weight: 700; color: var(--morth-blue); background: #e8f0fe; padding: 4px 12px; border-radius: 4px; font-size: 13px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px; }
+    .form-group { display: flex; flex-direction: column; margin-bottom: 12px; }
+    label { font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #374151; text-transform: uppercase; letter-spacing: 0.3px; }
+    input[type="text"], input[type="date"], select {
+      padding: 10px 12px; border: 1px solid var(--border); border-radius: 5px; font-size: 14px; background: #fff; transition: all 0.2s;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--morth-blue); box-shadow: 0 0 0 3px rgba(0, 64, 133, 0.15); }
+
+    .badge-exempt { background: #e6f4ea; color: #1e8e3e; border: 1px solid #ceead6; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-block; margin-top: 4px; }
+    
+    .captcha-row { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+    .captcha-img { background: #1e293b; color: #f8fafc; font-family: monospace; font-size: 20px; font-weight: 800; letter-spacing: 6px; padding: 10px 16px; border-radius: 4px; user-select: none; border: 1px dashed #64748b; }
+    
+    .submit-btn { background: #004085; color: #fff; border: none; padding: 14px 20px; font-size: 15px; font-weight: 700; border-radius: 6px; cursor: pointer; width: 100%; transition: background 0.2s; }
+    .submit-btn:hover { background: #002752; }
+
+    /* Success Receipt Modal */
+    .receipt-box { display: none; background: #e6f4ea; border: 2px solid #34a853; border-radius: 8px; padding: 24px; margin-bottom: 24px; }
+    .receipt-header { display: flex; align-items: center; gap: 10px; color: var(--success); font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+    .receipt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #fff; padding: 16px; border-radius: 6px; border: 1px solid #ceead6; font-size: 13px; }
+    .receipt-row { display: flex; flex-direction: column; }
+    .receipt-label { font-size: 11px; color: #5f6368; font-weight: 600; text-transform: uppercase; }
+    .receipt-val { font-size: 14px; font-weight: 700; color: #1e293b; margin-top: 2px; }
+  </style>
+</head>
+<body>
+
+<div class="portal-container">
+  
+  <!-- Header -->
+  <div class="gov-header">
+    <div>
+      <div class="gov-title">MINISTRY OF ROAD TRANSPORT & HIGHWAYS</div>
+      <div class="gov-subtitle">MoRTH Parivahan Sarathi — Citizen Portal for Driving License Services</div>
+    </div>
+    <div class="emblem-box">🏛️</div>
+  </div>
+
+  <div class="portal-body">
+    <div class="page-title">Application for Services on Driving License (Renewal)</div>
+    <div class="page-subtitle">Form 9 (Rule 18) — Online Application for Driving License Renewal in India</div>
+
+    <!-- Success Receipt -->
+    <div id="receipt-box" class="receipt-box">
+      <div class="receipt-header">
+        <span>✓</span>
+        <span>MoRTH Sarathi Application Submitted Successfully!</span>
+      </div>
+      <div class="receipt-grid">
+        <div class="receipt-row">
+          <span class="receipt-label">Application Number</span>
+          <span class="receipt-val" id="rec-app-no" style="color: #004085; font-family: monospace;">DL-RJ01-2026-904821</span>
+        </div>
+        <div class="receipt-row">
+          <span class="receipt-label">Driving License No.</span>
+          <span class="receipt-val" id="rec-dl-no">RJ01 20250003300</span>
+        </div>
+        <div class="receipt-row">
+          <span class="receipt-label">Applicant Name</span>
+          <span class="receipt-val" id="rec-name">Garv Sharma</span>
+        </div>
+        <div class="receipt-row">
+          <span class="receipt-label">Service Applied</span>
+          <span class="receipt-val">Renewal of DL (Non-Transport)</span>
+        </div>
+        <div class="receipt-row">
+          <span class="receipt-label">Designated RTO</span>
+          <span class="receipt-val">RJ01 — RTO Ajmer, Rajasthan</span>
+        </div>
+        <div class="receipt-row">
+          <span class="receipt-label">Form 1A Medical Status</span>
+          <span class="receipt-val" style="color: #1e8e3e;">EXEMPT (Age 21 < 40 years)</span>
+        </div>
+      </div>
+      <div style="margin-top: 14px; display: flex; gap: 10px;">
+        <button type="button" onclick="window.print()" style="padding: 8px 16px; background: #004085; color: #fff; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">🖨️ Print Acknowledgment Slip</button>
+        <button type="button" onclick="window.close()" style="padding: 8px 16px; background: #fff; border: 1px solid var(--border); border-radius: 4px; font-weight: 600; cursor: pointer;">Close Tab</button>
+      </div>
+    </div>
+
+    <!-- Active Status Bar -->
+    <div id="autofill-status-bar" class="status-bar">
+      <span>⚡ <strong>Parivahan Sarathi Live Gateway:</strong> Standing by for automated citizen profile autofill.</span>
+      <button type="button" onclick="runParivahanAutofill()" style="background: #004085; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; font-weight: 600; cursor: pointer;">▶️ Autofill Now</button>
+    </div>
+
+    <form id="parivahan-form" onsubmit="event.preventDefault(); submitParivahanForm();">
+      
+      <!-- Section 1: Jurisdiction Selection -->
+      <fieldset>
+        <legend>1. State & RTO Office Jurisdiction</legend>
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="state-select">Applying State *</label>
+            <select id="state-select" name="state" required>
+              <option value="Rajasthan" selected>Rajasthan</option>
+              <option value="Maharashtra">Maharashtra</option>
+              <option value="Delhi">Delhi</option>
+              <option value="Uttar Pradesh">Uttar Pradesh</option>
+              <option value="Gujarat">Gujarat</option>
+              <option value="Karnataka">Karnataka</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="rto-select">Designated RTO Authority *</label>
+            <select id="rto-select" name="rto" required>
+              <option value="RJ01 - RTO AJMER" selected>RJ01 — RTO AJMER</option>
+              <option value="RJ14 - RTO JAIPUR">RJ14 — RTO JAIPUR</option>
+              <option value="RJ19 - RTO JODHPUR">RJ19 — RTO JODHPUR</option>
+              <option value="MH12 - RTO PUNE">MH12 — RTO PUNE</option>
+              <option value="DL04 - RTO DELHI">DL04 — RTO DELHI</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Section 2: DL & Citizen Verification -->
+      <fieldset>
+        <legend>2. Driving License & Identity Verification</legend>
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="dl-input">Driving License Number *</label>
+            <input type="text" id="dl-input" name="dl_number" required placeholder="e.g. RJ01 20250003300">
+          </div>
+          <div class="form-group">
+            <label for="dob-input">Date of Birth (DD-MM-YYYY) *</label>
+            <input type="date" id="dob-input" name="dob" required>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="name-input">Full Name (as in DL) *</label>
+            <input type="text" id="name-input" name="full_name" required placeholder="Applicant full name">
+          </div>
+          <div class="form-group">
+            <label for="phone-input">Aadhaar Linked Mobile No. *</label>
+            <input type="text" id="phone-input" name="mobile" required placeholder="10-digit mobile number">
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Section 3: Statutory Rules & Medical Fitness -->
+      <fieldset>
+        <legend>3. Motor Vehicles Act Statutory Compliance</legend>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Service Requested</label>
+            <input type="text" value="Issue of Renewal of DL" readonly style="background: #e2e8f0; font-weight: 600;">
+          </div>
+          <div class="form-group">
+            <label>Form 1A Medical Fitness Requirement</label>
+            <div>
+              <span class="badge-exempt">✓ STATUTORY EXEMPTION (Age < 40 Years)</span>
+            </div>
+            <span style="font-size: 11px; color: #5f6368; margin-top: 4px;">Under MoRTH Rule 5, Form 1A certificate is only mandatory for applicants age 40+.</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Section 4: Security Verification -->
+      <fieldset>
+        <legend>4. Government Security Gate (CAPTCHA)</legend>
+        <div class="form-group">
+          <label for="captcha-input">Enter Security Code Shown Below *</label>
+          <div class="captcha-row">
+            <div class="captcha-img" id="captcha-display">X 7 K 9 M</div>
+            <input type="text" id="captcha-input" name="captcha" required placeholder="Enter CAPTCHA" style="max-width: 180px; font-weight: 700; letter-spacing: 2px;">
+            <button type="button" onclick="document.getElementById('captcha-input').value = 'X7K9M'" style="padding: 10px 14px; background: #e8f0fe; color: #004085; border: 1px solid #c2e7ff; border-radius: 5px; font-weight: 600; cursor: pointer;">⚡ Auto-Fill Code</button>
+          </div>
+        </div>
+      </fieldset>
+
+      <button type="submit" class="submit-btn" id="submit-parivahan-btn">Submit DL Renewal Application to MoRTH Sarathi</button>
+    </form>
+  </div>
+
+</div>
+
+<script>
+  function submitParivahanForm() {
+    const receiptBox = document.getElementById("receipt-box");
+    const nameVal = document.getElementById("name-input").value || "Garv Sharma";
+    const dlVal = document.getElementById("dl-input").value || "RJ01 20250003300";
+
+    document.getElementById("rec-name").innerText = nameVal;
+    document.getElementById("rec-dl-no").innerText = dlVal;
+    
+    receiptBox.style.display = "block";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const bar = document.getElementById("autofill-status-bar");
+    if (bar) {
+      bar.innerHTML = "✅ <strong>MoRTH Sarathi Renewal Completed!</strong> Application Reference Number Generated.";
+      bar.style.background = "#e6f4ea";
+      bar.style.borderColor = "#ceead6";
+      bar.style.color = "#1e8e3e";
+    }
+  }
+
+  async function runParivahanAutofill() {
+    const bar = document.getElementById("autofill-status-bar");
+    if (bar) bar.innerHTML = "🤖 <strong>Autonomous Agent Active:</strong> Reading citizen license and populating Parivahan Sarathi...";
+
+    let profile = {
+      personal: { full_name: "Garv Sharma", dob: "2005-04-05", dl_number: "RJ01 20250003300", state: "Rajasthan" },
+      license: { dl_number: "RJ01 20250003300" }
+    };
+
+    try {
+      const res = await fetch("/api/profile");
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.personal) profile = data;
+      }
+    } catch(e) {}
+
+    const dlNum = profile.license.dl_number || profile.personal.dl_number || "RJ01 20250003300";
+    const applicantName = profile.personal.full_name || "Garv Sharma";
+    const dob = profile.personal.dob || "2005-04-05";
+    const state = profile.personal.state || "Rajasthan";
+
+    const fields = [
+      { id: "state-select", val: state, isSelect: true },
+      { id: "dl-input", val: dlNum },
+      { id: "dob-input", val: dob },
+      { id: "name-input", val: applicantName },
+      { id: "phone-input", val: "9876543210" },
+      { id: "captcha-input", val: "X7K9M" }
+    ];
+
+    async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    for (const f of fields) {
+      const el = document.getElementById(f.id);
+      if (!el) continue;
+
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.outline = "3px solid #004085";
+      el.style.background = "#e8f0fe";
+      await sleep(250);
+
+      if (f.isSelect || el.type === "date") {
+        el.value = f.val;
+      } else {
+        el.value = "";
+        for (let i = 0; i < f.val.length; i++) {
+          el.value += f.val[i];
+          await sleep(25);
+        }
+      }
+
+      await sleep(150);
+      el.style.outline = "2px solid #34a853";
+      el.style.background = "#fff";
+    }
+
+    if (bar) {
+      bar.innerHTML = "✅ <strong>Autofill Completed:</strong> All statutory fields populated. Click submit to generate application reference.";
+      bar.style.background = "#e6f4ea";
+      bar.style.borderColor = "#ceead6";
+      bar.style.color = "#1e8e3e";
+    }
+
+    const btn = document.getElementById("submit-parivahan-btn");
+    if (btn) {
+      btn.style.boxShadow = "0 0 0 4px rgba(0, 64, 133, 0.35)";
+      btn.focus();
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("autofill") === "1" || window.opener) {
+      setTimeout(runParivahanAutofill, 600);
+    }
+  });
+</script>
+</body>
+</html>

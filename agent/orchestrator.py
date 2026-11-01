@@ -222,13 +222,13 @@ class AgentOrchestrator:
 
                 # Step 2: Academic Info
                 if state.step_index == 2:
-                    await page.get_by_label("College / Institution *").fill(education["college"])
-                    await page.get_by_label("Current year").select_option(label=education["course_year"])
-                    await page.get_by_label("Previous examination marks (%)").fill(str(education["marks"]))
-                    await page.get_by_label("Annual family income (₹)").fill(str(education["annual_income"]))
+                    await page.locator("#college").fill(education["college"])
+                    await page.locator("#course_year").select_option(label=education["course_year"])
+                    await page.locator("#marks").fill(str(education["marks"]))
+                    await page.locator("#annual_income").fill(str(education["annual_income"]))
 
                     # Upload marksheet
-                    upload = page.get_by_label("Upload marksheet")
+                    upload = page.locator("#marksheet")
                     await upload.set_input_files(str(marksheet_file))
 
                     await page.get_by_role("button", name="Save & continue").click()

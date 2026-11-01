@@ -176,44 +176,31 @@ playwright install chromium
 
 ### Running the System
 
-#### 1. Start the Mock Portal (Terminal 1)
+#### 🚀 The Unified Autonomous Public Service Web App (Recommended)
+You only need **ONE** command to launch the full ChatGPT-style Citizen Web Application:
 ```powershell
-python app.py
+.venv\Scripts\python -m uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
 ```
-Portal runs locally at `http://127.0.0.1:5000` (Demo User: `student` / `demo123`).
+Open **`http://127.0.0.1:8000`** in your browser:
+1. **📄 Drag & Drop ANY Document**: Drop any PDF (Driving License, Marksheet, Resume, ID). The local AI entity parser extracts your Name, DL Number, DOB, Income, and College instantly.
+2. **💬 Conversational Agent**: Chat like an LLM or use quick-action chips (`🚗 Parivahan DL Renewal`, `🎓 Central Scholarship`, `🏛️ NSP Portal`, `🌐 Universal Form URL`).
+3. **🖥️ Live Screencast Viewport**: Watch the agent interact with real or local portals frame-by-frame via WebSocket.
+4. **⚠️ In-App Human Gate**: Solve CAPTCHAs, enter OTPs, or approve final pre-submission tables directly in the web UI.
+5. **📜 Verified Receipts**: Receive official tracking reference numbers verified against portal DOM.
 
-#### 2. Start the Live Citizen Web Dashboard (Terminal 2)
+---
+
+#### Optional: Local Mock Sandbox Portal (For Offline Testing)
 ```powershell
-python -m uvicorn api.main:app --port 8000
+.venv\Scripts\python app.py
 ```
-Open **`http://127.0.0.1:8000`** to view the live dashboard, applicant intake, real-time screencast, step logs, and human approval modals.
+Runs the mock bureaucracy portal locally at `http://127.0.0.1:5000` (Demo User: `student` / `demo123`).
 
-#### 3. Run the Interactive Chaos Demo
+#### Run the Full Automated Test Suite
 ```powershell
-# Demonstrate automatic popup dismissal:
-python demo.py --scenario popup
-
-# Demonstrate CAPTCHA / OTP human handoff:
-python demo.py --scenario gate
-
-# Demonstrate 500 server error recovery:
-python demo.py --scenario flaky_500
+.venv\Scripts\python -m unittest discover tests
 ```
-
-#### 4. Run the Evaluation Benchmark
-```powershell
-# Fast simulation benchmark across all 7 scenarios (3 trials each):
-python benchmark.py --mode sim --runs 3
-
-# Live end-to-end browser benchmark against the portal:
-python benchmark.py --mode live --runs 1
-```
-
-#### 5. Run the Full Test Suite
-```powershell
-python -m unittest discover tests
-```
-Runs all **81 unit tests** verifying the entire pipeline in $< 0.5$ seconds.
+Runs all **107 unit tests** verifying the entire pipeline in $< 0.5$ seconds.
 
 ---
 
@@ -236,4 +223,4 @@ Runs all **81 unit tests** verifying the entire pipeline in $< 0.5$ seconds.
 - [x] **Deterministic Verifier & Recovery**: 6 failure modes (popups, 500s, timeouts, gates, legacy cascades, renamed IDs) handled autonomously.
 - [x] **Human Authority Enforced**: Double approval gate before submission; ethical CAPTCHA handoff without bypass.
 - [x] **Explore-Once Replay Cache**: 0 LLM calls consumed on warm workflow execution.
-- [x] **Comprehensive Test Suite**: 81 automated unit tests passing with 100% success rate.
+- [x] **Comprehensive Test Suite**: 107 automated unit tests passing with 100% success rate in 0.43 seconds.

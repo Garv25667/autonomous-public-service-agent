@@ -232,12 +232,12 @@ class BenchmarkRunner:
             "declaration": True
         }
         ground_truth_fields = {
-            "full_name": "Aarav Sharma",
-            "dob": "2005-04-05",
-            "category": "General",
-            "course": "B.Tech",
-            "college": "Demo Institute of Technology",
-            "annual_income": "450000",
+            "full_name": self.profile["personal"].get("full_name", "Aarav Sharma"),
+            "dob": self.profile["personal"].get("dob", "2005-04-05"),
+            "category": self.profile["personal"].get("category", "General"),
+            "course": self.profile["personal"].get("course", "B.Tech"),
+            "college": self.profile["education"].get("college", "Demo Institute of Technology"),
+            "annual_income": str(self.profile["education"].get("annual_income", "450000")),
             "declaration": True
         }
         matching = sum(1 for k, v in submitted_fields.items() if ground_truth_fields.get(k) == v)

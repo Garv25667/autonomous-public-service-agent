@@ -421,6 +421,70 @@ python demo.py --scenario popup
 python -m unittest discover tests
 ```
 
+---
+
+## 17. Live National Scholarship Portal (NSP) Co-Pilot (`nsp_copilot.py`, `agent/nsp_assistant.py`)
+
+### Architecture & Live Government Portal Adaptation
+Implements the real-world adaptation for the official Indian National Scholarship Portal (`scholarships.gov.in`):
+- **Official Policy Rules (`rules/nsp_scholarship.yaml`)**:
+  - Implements the Ministry of Education Central Sector Scheme (CSSS) guidelines:
+    - Family income ceiling: $\le \text{INR } 4,50,000$ per annum
+    - Merit threshold: $\ge 75.0\%$ previous examination marks
+    - Age ceiling: $\le 25$ years
+- **Strict NSP Document Constraints ($\le 200\text{ KB}$)**:
+  - Validates marksheet, bonafide, and income certificates against real NSP's $200\text{ KB}$ file size cap and format constraints (.pdf, .jpg).
+- **Assisted Co-Pilot Mode (`agent/nsp_assistant.py`)**:
+  - Navigates to `https://scholarships.gov.in`.
+  - Pauses for citizen to complete Aadhaar One-Time Registration (OTR), login, and visual CAPTCHA.
+  - Tokenizes citizen PII via `SecretVault` with zero outbound exposure.
+  - Enforces strict human approval before submission.
+
+### Running the Live NSP Co-Pilot
+```powershell
+python nsp_copilot.py
+```
+
+### Unit Tests
+Execute the NSP Assistant test suite:
+```powershell
+python -m unittest tests/unit/test_nsp_assistant.py
+```
+Validates Central Sector Scheme rule evaluation, 200 KB document enforcement, and pre-flight audit contracts.
+
+---
+
+## 18. Universal Form Autofill Agent (`agent/universal_form_agent.py`, `test_live_web_form.py`)
+
+### Architecture & Real-World Web Page Generalization
+Provides an autonomous form-filling agent capable of interacting with any live public web form:
+- **Intelligent DOM Field Classification (`_classify_field_intent`)**:
+  - Dynamically extracts and analyzes labels, placeholders, ARIA tags, and element names.
+  - Automatically matches attributes: Name, DOB, Email, Phone, College, Course, Marks, Income, Category, State, Statement of Purpose essay, and Document File attachments.
+- **Visual Focus & Slow-Mo Typing**:
+  - Highlights the actively focused field with a glowing green border (`3px solid #00c853`).
+  - Types keystrokes and handles select dropdowns in visible slow motion.
+- **General URL Support**:
+  - Compatible with any public website URL or local web forms.
+
+### Running Live Web Form Autofill
+```powershell
+# Autofill the full standalone scholarship application form:
+python test_live_web_form.py --url "file:///C:/Users/bajaj/autonomous-public-service-agent/web/live_scholarship_form.html"
+
+# Autofill a live form on the public internet:
+python test_live_web_form.py --url "https://httpbin.org/forms/post"
+```
+
+### Unit Tests
+Execute the Universal Form Agent test suite:
+```powershell
+python -m unittest tests/unit/test_universal_form_agent.py
+```
+Validates semantic field classification, label pattern matching, and profile attribute coverage.
+
+
+
 
 
 
