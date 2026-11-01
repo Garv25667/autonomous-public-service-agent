@@ -86,7 +86,7 @@ class ApprovalGate:
         table.add_field("College", education.get("college", ""), "citizen.json / education")
         table.add_field("Course Year", education.get("course_year", ""), "citizen.json / education")
         table.add_field("Marks (%)", education.get("marks", ""), "citizen.json / education")
-        table.add_field("Annual Income (₹)", education.get("annual_income", ""), "citizen.json / education")
+        table.add_field("Annual Income (INR)", education.get("annual_income", ""), "citizen.json / education")
         table.add_field("Marksheet File", education.get("marksheet_path", ""), "citizen.json / education")
 
         return table

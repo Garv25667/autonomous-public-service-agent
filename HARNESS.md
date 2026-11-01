@@ -387,5 +387,40 @@ python -m unittest tests/unit/test_step11_workflow_cache.py
 ```
 Validates deterministic page fingerprint computation, cache miss/hit cycles, step append & counter increments, self-healing locator updates, and telemetry calculations.
 
+---
+
+## 16. Step 12: Project Polish, Chaos Demo Script & Final Documentation
+
+### Deliverables & Architecture
+- **Interactive Chaos Demo (`demo.py`)**:
+  - Implements the 8-step live demonstration narrative:
+    1. Citizen Persona & Intake (Aarav Sharma)
+    2. Deterministic Eligibility Pre-Check (`rules/scholarship.yaml`)
+    3. Document Pre-Flight Validation (`data/demo_marksheet.pdf`)
+    4. Zero-PII Secret Vault Tokenization (`{{full_name}}`, `{{dob}}`)
+    5. Autonomous State Machine Execution & Chaos Fault Recovery
+    6. Pre-Submission Human Approval Gate (Review Summary Table)
+    7. Deterministic Receipt Extraction (`\b(SCH-[A-F0-9]{8})\b`)
+    8. Security & Zero-PII Verification (0 leaks verified)
+- **Comprehensive Project Documentation (`README.md`)**:
+  - Full system architecture diagram rendered via Mermaid.
+  - Complete benchmark evaluation matrix across all 7 scenarios.
+  - Quickstart guide for portal, live dashboard, demo script, and test suite.
+  - Minute-by-minute 5-minute hackathon judge pitch script.
+  - Safety & verification checklist.
+- **Unit Tests (`tests/unit/test_step12_demo_and_docs.py`)**:
+  - Validates `demo.py` execution across failure modes (`popup`, `gate`, `flaky_500`, `expire_session`).
+  - Asserts `README.md` completeness and structural integrity.
+
+### Running the Full Verification
+```powershell
+# Run the Chaos Demo
+python demo.py --scenario popup
+
+# Run the complete test suite across all 12 steps (81 unit tests)
+python -m unittest discover tests
+```
+
+
 
 
