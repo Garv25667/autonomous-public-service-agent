@@ -217,6 +217,8 @@
   window.addEventListener("message", function(e) {
     if (e.data === "RESET_FORM" || (e.data && e.data.action === "RESET_FORM")) {
       resetPortalForm();
+    } else if (e.data === "TRIGGER_AUTOFILL" || (e.data && e.data.action === "TRIGGER_AUTOFILL")) {
+      runParivahanAutofill();
     }
   });
 

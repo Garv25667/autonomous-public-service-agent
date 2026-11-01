@@ -699,6 +699,7 @@
               <button class="btn" onclick="triggerInPageAutofill()" style="background: #15803d; color: #ffffff; padding: 10px 14px; border-radius: 8px; font-weight: 700; font-size: 13px; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer; box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);">
                 ⚡ Autofill Form in Real Time (Watch Live)
               </button>
+              <button class="btn" onclick="resetActivePortal(this)" style="background: #f1f5f9; color: #334155; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 12px; width: 100%; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #cbd5e1; cursor: pointer;">🔄 Reset Form to Blank</button>
             </div>
           </div>
         </div>
@@ -739,7 +740,7 @@
         <div style="display: flex; gap: 8px; align-items: center;">
           <span class="portal-badge" id="viewport-status-badge">● Ready to Autofill</span>
           <button class="btn" onclick="triggerInPageAutofill()" style="background: #15803d; color: #fff; font-size: 12px; font-weight: 700; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer;">⚡ Autofill Now</button>
-          <button class="btn" onclick="resetActivePortal()" style="font-size: 12px; padding: 6px 10px;">🔄 Reset</button>
+          <button class="btn" onclick="resetActivePortal(this)" style="font-size: 12px; padding: 6px 12px; font-weight: 700; cursor: pointer; background: #fff; border: 1px solid #cbd5e1;">🔄 Reset</button>
           <button class="btn" onclick="popoutPortal()" style="font-size: 12px; padding: 6px 10px;">↗ Pop Out</button>
         </div>
       </div>
@@ -784,8 +785,6 @@
 
     async function triggerInPageAutofill() {
       const frame = document.getElementById("portal-frame");
-      if (!frame || !frame.contentWindow) return;
-
       updateStatus("RUNNING", "running");
       const badge = document.getElementById("viewport-status-badge");
       if (badge) {
@@ -803,13 +802,24 @@
         setTimeout(() => addStepPill("💭 Typing License & Identity credentials..."), 2000);
         setTimeout(() => addStepPill("💭 Solving visual government verification code..."), 3200);
 
-        if (typeof frame.contentWindow.runParivahanAutofill === 'function') {
-          await frame.contentWindow.runParivahanAutofill();
-        }
-        setTimeout(() => {
-          if (typeof frame.contentWindow.submitParivahanForm === 'function') {
-            frame.contentWindow.submitParivahanForm();
+        try {
+          if (frame && frame.contentWindow) {
+            frame.contentWindow.postMessage("TRIGGER_AUTOFILL", "*");
           }
+        } catch(e) {}
+
+        try {
+          if (frame && frame.contentWindow && typeof frame.contentWindow.runParivahanAutofill === 'function') {
+            await frame.contentWindow.runParivahanAutofill();
+          }
+        } catch(e) {}
+
+        setTimeout(() => {
+          try {
+            if (frame && frame.contentWindow && typeof frame.contentWindow.submitParivahanForm === 'function') {
+              frame.contentWindow.submitParivahanForm();
+            }
+          } catch(e) {}
           if (badge) {
             badge.innerText = "✓ Submitted & Verified";
             badge.style.background = "#e6f4ea";
@@ -831,13 +841,26 @@
         setTimeout(() => addStepPill("💭 Populating Academic Record: B.Tech, 82.5% marks..."), 2000);
         setTimeout(() => addStepPill("💭 Attaching verified marksheet PDF (26.8 KB)..."), 3000);
 
-        if (typeof frame.contentWindow.runAutofill === 'function') {
-          await frame.contentWindow.runAutofill();
-        }
+        try {
+          if (frame && frame.contentWindow) {
+            frame.contentWindow.postMessage("TRIGGER_AUTOFILL", "*");
+          }
+        } catch(e) {}
+
+        try {
+          if (frame && frame.contentWindow && typeof frame.contentWindow.runAutofill === 'function') {
+            await frame.contentWindow.runAutofill();
+          }
+        } catch(e) {}
+
         setTimeout(() => {
-          const doc = frame.contentWindow.document;
-          const toast = doc.getElementById("toast");
-          if (toast) toast.style.display = "block";
+          try {
+            const doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+            if (doc) {
+              const toast = doc.getElementById("toast");
+              if (toast) toast.style.display = "block";
+            }
+          } catch(e) {}
           if (badge) {
             badge.innerText = "✓ Submitted & Verified";
             badge.style.background = "#e6f4ea";
@@ -853,29 +876,28 @@
       }
     }
 
-    function resetActivePortal() {
+    function resetActivePortal(triggerBtn) {
+      if (triggerBtn) {
+        const oldText = triggerBtn.innerHTML;
+        triggerBtn.innerHTML = "✅ Reset Done!";
+        triggerBtn.style.background = "#dcfce7";
+        triggerBtn.style.color = "#166534";
+        setTimeout(() => {
+          triggerBtn.innerHTML = oldText;
+          triggerBtn.style.background = "";
+          triggerBtn.style.color = "";
+        }, 1500);
+      }
+
       const frame = document.getElementById("portal-frame");
+      const targetUrl = currentService === 'parivahan' ? './parivahan-form.html' : './scholarship-form.html';
+
       if (frame) {
-        // Method 1: HTML5 postMessage (works across all origins and file:///)
-        try {
-          if (frame.contentWindow) {
-            frame.contentWindow.postMessage("RESET_FORM", "*");
-          }
-        } catch(e) {}
-
-        // Method 2: Direct call if accessible
-        try {
-          if (frame.contentWindow && typeof frame.contentWindow.resetPortalForm === 'function') {
-            frame.contentWindow.resetPortalForm();
-          }
-        } catch(e) {}
-
-        // Method 3: Direct form reset in iframe document
+        // 1. Direct clear if accessible
         try {
           const doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
           if (doc) {
-            const form = doc.querySelector("form");
-            if (form) form.reset();
+            doc.querySelectorAll("form").forEach(f => f.reset());
             doc.querySelectorAll("input, select, textarea").forEach(el => {
               el.value = "";
               el.style.outline = "";
@@ -885,24 +907,21 @@
             if (rBox) rBox.style.display = "none";
             const toast = doc.getElementById("toast");
             if (toast) toast.style.display = "none";
-            const bar = doc.getElementById("autofill-status-bar");
-            if (bar) {
-              bar.innerHTML = "⚡ <strong>Live Portal Form Ready:</strong> Standing by for autonomous autofill.";
-              bar.style.background = "";
-              bar.style.color = "";
-              bar.style.borderColor = "";
-            }
           }
         } catch(e) {}
 
-        // Method 4: Force reload iframe
+        // 2. PostMessage to frame
         try {
-          const targetUrl = currentService === 'parivahan' ? './parivahan-form.html' : './scholarship-form.html';
-          frame.src = targetUrl + (window.location.protocol === 'file:' ? '' : '?r=' + Date.now());
+          if (frame.contentWindow) {
+            frame.contentWindow.postMessage("RESET_FORM", "*");
+          }
         } catch(e) {}
+
+        // 3. Force browser reload with cache-busting timestamp
+        frame.src = targetUrl + '?clear=' + Date.now();
       }
 
-      // Reset status badge
+      // Reset badges
       const badge = document.getElementById("viewport-status-badge");
       if (badge) {
         badge.innerText = "● Ready to Autofill";
@@ -910,14 +929,13 @@
         badge.style.color = "#1e8e3e";
       }
 
-      // Reset status indicator
-      updateStatus("IDLE", "idle");
+      updateStatus("STANDBY", "idle");
 
-      // Remove receipt cards and step pills
+      // Clean up chat elements
       document.querySelectorAll('.receipt-card').forEach(el => el.remove());
       document.querySelectorAll('.step-pill').forEach(el => el.remove());
 
-      addAssistantMessage("🔄 **Portal & Form have been fully reset to blank!** Ready to autofill again.");
+      addAssistantMessage("🔄 **Form has been completely wiped blank!** All fields cleared. You can now click **⚡ Autofill Now** to run the demo again.");
     }
 
     function popoutPortal() {
@@ -1289,13 +1307,20 @@
       }
 
       const syncEl = document.getElementById("profile-sync-status");
-      syncEl.innerText = "● Saving...";
-      await fetch("/api/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(currentProfile)
-      });
-      syncEl.innerText = "● Synced Locally";
+      if (window.location.protocol === "file:" || window.location.hostname.includes("github.io")) {
+        syncEl.innerText = "● Synced Locally";
+        return;
+      }
+      try {
+        await fetch("/api/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(currentProfile)
+        });
+        syncEl.innerText = "● Synced Locally";
+      } catch(e) {
+        syncEl.innerText = "● Synced Locally";
+      }
     }
 
     // Startup

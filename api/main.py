@@ -300,33 +300,50 @@ async def websocket_endpoint(websocket: WebSocket, run_id: str):
 
 
 @app.get("/scholarship-form", response_class=HTMLResponse)
+@app.get("/scholarship-form.html", response_class=HTMLResponse)
 def serve_scholarship_form():
     """Serves the standalone live scholarship application form."""
-    form_path = ROOT / "web" / "live_scholarship_form.html"
-    if not form_path.exists():
-        return HTMLResponse("<h1>Scholarship Form not found.</h1>", status_code=404)
-    with open(form_path, "r", encoding="utf-8") as f:
-        return f.read()
+    candidates = [
+        ROOT / "docs" / "scholarship-form.html",
+        ROOT / "web" / "live_scholarship_form.html",
+        ROOT / "web" / "scholarship-form.html"
+    ]
+    for form_path in candidates:
+        if form_path.exists():
+            with open(form_path, "r", encoding="utf-8") as f:
+                return f.read()
+    return HTMLResponse("<h1>Scholarship Form not found.</h1>", status_code=404)
 
 
 @app.get("/parivahan-form", response_class=HTMLResponse)
+@app.get("/parivahan-form.html", response_class=HTMLResponse)
 def serve_parivahan_form():
     """Serves the standalone live MoRTH Parivahan Sarathi DL renewal form."""
-    form_path = ROOT / "web" / "live_parivahan_form.html"
-    if not form_path.exists():
-        return HTMLResponse("<h1>Parivahan Form not found.</h1>", status_code=404)
-    with open(form_path, "r", encoding="utf-8") as f:
-        return f.read()
+    candidates = [
+        ROOT / "docs" / "parivahan-form.html",
+        ROOT / "web" / "live_parivahan_form.html",
+        ROOT / "web" / "parivahan-form.html"
+    ]
+    for form_path in candidates:
+        if form_path.exists():
+            with open(form_path, "r", encoding="utf-8") as f:
+                return f.read()
+    return HTMLResponse("<h1>Parivahan Form not found.</h1>", status_code=404)
 
 
 @app.get("/presentation", response_class=HTMLResponse)
+@app.get("/presentation.html", response_class=HTMLResponse)
 def serve_presentation():
     """Serves the 7-Slide Pitch Deck Presentation."""
-    deck_path = ROOT / "web" / "presentation.html"
-    if not deck_path.exists():
-        return HTMLResponse("<h1>Presentation not found.</h1>", status_code=404)
-    with open(deck_path, "r", encoding="utf-8") as f:
-        return f.read()
+    candidates = [
+        ROOT / "docs" / "presentation.html",
+        ROOT / "web" / "presentation.html"
+    ]
+    for deck_path in candidates:
+        if deck_path.exists():
+            with open(deck_path, "r", encoding="utf-8") as f:
+                return f.read()
+    return HTMLResponse("<h1>Presentation not found.</h1>", status_code=404)
 
 
 @app.get("/", response_class=HTMLResponse)
